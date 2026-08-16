@@ -1,0 +1,41 @@
+# Environment variables / secrets - NEVER commit this
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Packaging / build artifacts
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Jupyter / testing
+.ipynb_checkpoints/
+.pytest_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+plant disease/plantvillage dataset/
+plant disease/plantvillage-dataset.zip
+plant disease/kaggle.json

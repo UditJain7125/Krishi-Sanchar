@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  crop-recommendation:
+    build: .
+    working_dir: /app/Crop recommendation
+    command: uvicorn app:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file: .env
+    restart: unless-stopped
+
+  fertilizer-recommendation:
+    build: .
+    working_dir: /app/Fertilizer recommendation
+    command: uvicorn Fertilizer:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    env_file: .env
+    restart: unless-stopped
+
+  yield-prediction:
+    build: .
+    working_dir: /app/Yield Prediction
+    command: uvicorn Yield_prediction:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    env_file: .env
+    restart: unless-stopped
+
+  market-analysis:
+    build: .
+    working_dir: /app
+    command: uvicorn market_analysis:app --host 0.0.0.0 --port 8003
+    ports:
+      - "8003:8003"
+    env_file: .env
+    restart: unless-stopped
+
+  weather-service:
+    build: .
+    working_dir: /app
+    command: uvicorn weather_service:app --host 0.0.0.0 --port 8004
+    ports:
+      - "8004:8004"
+    env_file: .env
+    restart: unless-stopped
+
+  ai-assistant:
+    build: .
+    working_dir: /app
+    command: uvicorn ai_assistant:app --host 0.0.0.0 --port 8005
+    ports:
+      - "8005:8005"
+    env_file: .env
+    restart: unless-stopped
+
+  plant-disease-detection:
+    build: .
+    working_dir: /app/plant disease
+    command: uvicorn plant_disease_detection:app --host 0.0.0.0 --port 8006
+    ports:
+      - "8006:8006"
+    env_file: .env
+    restart: unless-stopped

@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KrishiSanchar - Smart Agriculture Platform</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Preconnect to CDNs used for icons/photos so those requests start early -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://cdn-icons-png.flaticon.com">
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <!-- FontAwesome for Icons: loaded non-render-blocking (preload + swap) so
+       the page can paint before this ~90KB stylesheet finishes downloading -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!--             LANDING PAGE (Design 1)        -->
+  <!-- ========================================== -->
+  <div id="landing-page" class="view-section active">
+    <!-- Navbar -->
+    <header class="landing-header">
+      <nav class="navbar">
+        <div class="logo">
+          <span class="logo-krishi">KriShi</span>
+          <span class="logo-sanchar">san<span class="logo-white">char</span></span>
+        </div>
+        <div class="search-bar-container">
+          <div class="search-bar">
+            <input type="text" placeholder="Search schemes, crops, weather...">
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+          </div>
+        </div>
+        <ul class="nav-links">
+          <li><a href="javascript:void(0)" class="nav-icon-link"><i class="fas fa-home"></i></a></li>
+          <!-- <li><a href="javascript:void(0)" class="nav-icon-link"><i class="fas fa-globe"></i></a></li> -->
+          <li><a href="#about">about</a></li>
+          <li><a href="#contact">contact</a></li>
+        </ul>
+        <div class="nav-weather-widget" onclick="navigateToDashboard('weather-forecast')">
+          <img src="https://cdn-icons-png.flaticon.com/512/1163/1163763.png" alt="Weather Summary" class="weather-icon-mini">
+          <span class="weather-temp-mini">32°C</span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 class="hero-title">The Feeder Of<br>The Nation</h1>
+          <p class="hero-subtitle">The Producer ,<br><span class="highlight">The Protector</span></p>
+          <div class="hero-actions">
+            <a href="tel:18001234567" class="phone-link">
+              <span class="phone-icon-circle"><i class="fas fa-phone-alt"></i></span>
+              <span class="phone-text">Toll Free Support</span>
+            </a>
+          </div>
+        </div>
+        <div class="hero-image-container">
+          <div class="hero-circle-backdrop"></div>
+          <div class="hero-circle">
+            <img src="indian-farmer-holding-green-crops_1308360-47.avif" alt="Indian Farmer Illustration" class="farmer-img">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gov Scheme Section -->
+    <section class="scheme-section">
+      <div class="section-decor"></div>
+      <div class="container">
+        <h2 class="section-title">Gov. Scheme</h2>
+        <div class="scheme-grid">
+          
+          <!-- Card 1 -->
+          <div class="scheme-card fade-in-up">
+            <div class="card-icon-header">
+              <img src="https://cdn-icons-png.flaticon.com/512/862/862856.png" alt="Crop Icon" class="scheme-card-icon">
+              <h3>PM-KISAN</h3>
+            </div>
+            <p class="scheme-desc">₹6,000 yearly income support for farmers paid in three equal installments.</p>
+            <ul class="scheme-features">
+              <li><i class="fas fa-check-circle"></i> Eligibility: Small & Marginal Farmers</li>
+              <li><i class="fas fa-check-circle"></i> Benefits: Direct Benefit Transfer</li>
+              <li><i class="fas fa-check-circle"></i> Required Documents: Aadhaar, Land Records</li>
+            </ul>
+            <a href="javascript:void(0)" class="scheme-apply-btn" onclick="openSchemeModal('PM-KISAN')">Apply Online <i class="fas fa-arrow-right"></i></a>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="scheme-card fade-in-up" style="animation-delay: 0.1s;">
+            <div class="card-icon-header">
+              <i class="fas fa-shield-halved scheme-card-icon-fa"></i>
+              <h3>PMFBY</h3>
+            </div>
+            <p class="scheme-desc">Pradhan Mantri Fasal Bima Yojana. Protect your crops against natural calamities.</p>
+            <ul class="scheme-features-grid">
+              <li><span class="danger-tag"><i class="fas fa-tint"></i> Flood</span></li>
+              <li><span class="danger-tag"><i class="fas fa-sun"></i> Drought</span></li>
+              <li><span class="danger-tag"><i class="fas fa-wind"></i> Cyclone</span></li>
+              <li><span class="danger-tag"><i class="fas fa-bug"></i> Pest attacks</span></li>
+            </ul>
+            <a href="javascript:void(0)" class="scheme-apply-btn" onclick="openSchemeModal('PMFBY')">Apply Online <i class="fas fa-arrow-right"></i></a>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="scheme-card fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-icon-header">
+              <i class="fas fa-seedling scheme-card-icon-fa"></i>
+              <h3>PMKSY</h3>
+            </div>
+            <p class="scheme-desc">Pradhan Mantri Krishi Sinchayee Yojana. Har Khet Ko Pani & More Crop Per Drop.</p>
+            <ul class="scheme-features">
+              <li><i class="fas fa-check-circle"></i> Eligibility: All agricultural landowners</li>
+              <li><i class="fas fa-check-circle"></i> Benefits: Up to 55% subsidy on Drip/Sprinkler</li>
+              <li><i class="fas fa-check-circle"></i> Focus: Water conservation & efficient use</li>
+            </ul>
+            <a href="javascript:void(0)" class="scheme-apply-btn" onclick="openSchemeModal('PMKSY')">Apply Online <i class="fas fa-arrow-right"></i></a>
+          </div>
+
+        </div>
+
+        <div class="explore-more-container">
+          <button class="explore-btn" onclick="enterDashboard()">
+            Explore more <span class="arrow-circle"><i class="fas fa-arrow-right"></i></span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!--             DASHBOARD (Design 2)           -->
+  <!-- ========================================== -->
+  <div id="dashboard-page" class="view-section">
+    <div class="dashboard-wrapper">
+      
+      <!-- Left Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="logo-sidebar">
+            <i class="fas fa-seedling brand-icon"></i>
+            <div class="brand-text">
+              <h3>KrishiSanchar</h3>
+              <p>A Smart Agriculture Platform</p>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="nav-item active" data-target="dashboard-overview">
+              <a href="javascript:void(0)"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+            </li>
+            <li class="nav-item" data-target="disease-detection">
+              <a href="javascript:void(0)"><i class="fas fa-virus-slash"></i> <span>Disease Detection</span></a>
+            </li>
+            <li class="nav-item" data-target="crop-recommendation">
+              <a href="javascript:void(0)"><i class="fas fa-list-check"></i> <span>Crop Recommendation</span></a>
+            </li>
+            <li class="nav-item" data-target="fertilizer-recommendation">
+              <a href="javascript:void(0)"><i class="fas fa-flask"></i> <span>Fertilizer Recommendation</span></a>
+            </li>
+            <li class="nav-item" data-target="weather-forecast">
+              <a href="javascript:void(0)"><i class="fas fa-cloud-sun-rain"></i> <span>Weather Forecast</span></a>
+            </li>
+            <li class="nav-item" data-target="market-analysis">
+              <a href="javascript:void(0)"><i class="fas fa-chart-simple"></i> <span>Market Analysis</span></a>
+            </li>
+            <li class="nav-item" data-target="ai-assistant">
+              <a href="javascript:void(0)"><i class="fas fa-robot"></i> <span>AI Assistant</span></a>
+            </li>
+            <li class="nav-item" data-target="yield-prediction">
+              <a href="javascript:void(0)"><i class="fas fa-chart-line"></i> <span>Yield Prediction</span></a>
+            </li>
+            <li class="nav-item" data-target="history-log">
+              <a href="javascript:void(0)"><i class="fas fa-history"></i> <span>History</span></a>
+            </li>
+            <li class="nav-item" data-target="my-profile">
+              <a href="javascript:void(0)"><i class="fas fa-user-circle"></i> <span>My Profile</span></a>
+            </li>
+            <li class="nav-item logout-item" onclick="exitDashboard()">
+              <a href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-help-card">
+          <i class="fas fa-headset help-icon"></i>
+          <h4>Need Help?</h4>
+          <p>Call Us Anytime</p>
+          <a href="tel:18001234567" class="help-phone">1800-123-4567</a>
+        </div>
+      </aside>
+
+      <!-- Main Dashboard Content -->
+      <main class="dashboard-main">
+        
+        <!-- Top Bar -->
+        <header class="dashboard-topbar">
+          <div class="topbar-left">
+            <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fas fa-bars"></i></button>
+            <h2 id="current-page-title">Dashboard</h2>
+          </div>
+          <div class="topbar-right">
+            <div class="location-badge">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>New Delhi, India</span>
+            </div>
+            <div class="notification-bell" onclick="toggleNotifications()">
+              <i class="fas fa-bell"></i>
+              <span class="bell-badge">2</span>
+              <div class="notifications-dropdown" id="notifications-dropdown">
+                <h4>Recent Notifications</h4>
+                <ul>
+                  <li><i class="fas fa-circle-exclamation text-warning"></i> Yellow Rust alert in neighboring wheat fields.</li>
+                  <li><i class="fas fa-droplet text-primary"></i> Perfect soil humidity detected. Optimal time to apply urea.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="user-profile">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" alt="User Profile" class="user-avatar" loading="lazy">
+              <div class="user-info">
+                <span class="user-name">Ram Kumar</span>
+                <span class="user-role">Farmer</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dynamic Panels Wrapper -->
+        <div class="panels-container">
+
+          <!-- ========================================== -->
+          <!-- PANEL: OVERVIEW (DASHBOARD)                -->
+          <!-- ========================================== -->
+          <div id="dashboard-overview" class="dashboard-panel active">
+            <!-- Top Cards Grid -->
+            <div class="overview-grid">
+              
+              <!-- Card: Weather Today -->
+              <div class="overview-card weather-card">
+                <div class="card-header-flex">
+                  <h4>Weather Today</h4>
+                  <i class="fas fa-cloud-sun icon"></i>
+                </div>
+                <div class="weather-main">
+                  <div class="temp-big">32°C</div>
+                  <div class="weather-desc">Partly Cloudy</div>
+                </div>
+                <div class="weather-metrics">
+                  <div><span>Humidity</span><strong>65%</strong></div>
+                  <div><span>Wind</span><strong>12 km/h</strong></div>
+                  <div><span>Rain</span><strong>0%</strong></div>
+                </div>
+                <a href="javascript:void(0)" class="card-action-link" onclick="switchDashboardTab('weather-forecast')">View full forecast <i class="fas fa-arrow-right"></i></a>
+              </div>
+
+              <!-- Card: Soil Status -->
+              <div class="overview-card soil-card">
+                <div class="card-header-flex">
+                  <h4>Soil Status</h4>
+                  <i class="fas fa-seedling icon text-success"></i>
+                </div>
+                <div class="soil-status-badge">
+                  <span class="status-indicator positive"></span>
+                  <div>
+                    <strong>Good</strong>
+                    <p>Suitable for farming</p>
+                  </div>
+                </div>
+                <div class="soil-metrics">
+                  <div><span>pH</span><strong>6.5</strong></div>
+                  <div><span>Moisture</span><strong>42%</strong></div>
+                  <div><span>Nutrients</span><strong>Good</strong></div>
+                </div>
+              </div>
+
+              <!-- Card: Today's Advice -->
+              <div class="overview-card advice-card">
+                <div class="card-header-flex">
+                  <h4>Today's Advice</h4>
+                  <i class="fas fa-lightbulb icon text-warning"></i>
+                </div>
+                <div class="advice-content">
+                  <p>Good time for irrigation. Apply organic fertilizer after 3 days.</p>
+                </div>
+                <div class="advice-visual">
+                  <img src="https://cdn-icons-png.flaticon.com/512/2921/2921226.png" alt="Irrigation" class="advice-img" loading="lazy">
+                </div>
+                <a href="javascript:void(0)" class="card-action-link" onclick="switchDashboardTab('ai-assistant')">Know More <i class="fas fa-arrow-right"></i></a>
+              </div>
+
+              <!-- Card: Disease Alerts -->
+              <div class="overview-card alert-card">
+                <div class="card-header-flex">
+                  <h4>Disease Alerts</h4>
+                  <i class="fas fa-triangle-exclamation icon text-danger"></i>
+                </div>
+                <div class="alert-content">
+                  <div class="alert-number">2 Alerts</div>
+                  <p>in your area</p>
+                </div>
+                <button class="alert-action-btn" onclick="switchDashboardTab('disease-detection')">Check Now <i class="fas fa-arrow-right"></i></button>
+              </div>
+
+              <!-- Card: Market Prices -->
+              <div class="overview-card market-card">
+                <div class="card-header-flex">
+                  <h4>Market Prices</h4>
+                  <i class="fas fa-chart-simple icon text-success"></i>
+                </div>
+                <div class="market-preview-content">
+                  <p>Check live mandi prices and get AI-powered selling advice for your crop.</p>
+                </div>
+                <a href="javascript:void(0)" class="card-action-link" onclick="switchDashboardTab('market-analysis')">Check Prices <i class="fas fa-arrow-right"></i></a>
+              </div>
+
+            </div>
+
+            <!-- Quick Access Section -->
+            <div class="quick-access-section">
+              <h3>Quick Access</h3>
+              <div class="quick-access-grid">
+                <div class="quick-btn" onclick="switchDashboardTab('disease-detection')">
+                  <i class="fas fa-virus-slash"></i>
+                  <span>Disease Detection</span>
+                </div>
+                <div class="quick-btn" onclick="switchDashboardTab('crop-recommendation')">
+                  <i class="fas fa-seedling"></i>
+                  <span>Crop Recommendation</span>
+                </div>
+                <div class="quick-btn" onclick="switchDashboardTab('fertilizer-recommendation')">
+                  <i class="fas fa-flask"></i>
+                  <span>Fertilizer Rec.</span>
+                </div>
+                <div class="quick-btn" onclick="switchDashboardTab('weather-forecast')">
+                  <i class="fas fa-cloud-sun-rain"></i>
+                  <span>Weather Forecast</span>
+                </div>
+                <div class="quick-btn" onclick="switchDashboardTab('market-analysis')">
+                  <i class="fas fa-chart-simple"></i>
+                  <span>Market Analysis</span>
+                </div>
+                <div class="quick-btn" onclick="switchDashboardTab('ai-assistant')">
+                  <i class="fas fa-robot"></i>
+                  <span>AI Assistant</span>
+                </div>
+                <div class="quick-btn" onclick="switchDashboardTab('yield-prediction')">
+                  <i class="fas fa-chart-line"></i>
+                  <span>Yield Prediction</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Layout: Recent Activity & Crop Health -->
+            <div class="overview-bottom-grid">
+              
+              <!-- Recent Activity -->
+              <div class="bottom-card recent-activity">
+                <h3>Recent Activity</h3>
+                <div class="table-responsive">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Activity</th>
+                        <th>Details</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="activity-type disease"><i class="fas fa-virus-slash"></i> Disease Detection</span></td>
+                        <td>Tomato Leaf - Early Blight</td>
+                        <td>17 May 2025</td>
+                      </tr>
+                      <tr>
+                        <td><span class="activity-type crop"><i class="fas fa-seedling"></i> Crop Rec.</span></td>
+                        <td>Recommended Crop: Maize</td>
+                        <td>16 May 2025</td>
+                      </tr>
+                      <tr>
+                        <td><span class="activity-type fertilizer"><i class="fas fa-flask"></i> Fertilizer Rec.</span></td>
+                        <td>Urea, DAP, Potash</td>
+                        <td>15 May 2025</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <a href="javascript:void(0)" class="view-history-link" onclick="switchDashboardTab('history-log')">View All History <i class="fas fa-arrow-right"></i></a>
+              </div>
+
+              <!-- Crop Health Overview -->
+              <div class="bottom-card crop-health">
+                <h3>Crop Health Overview</h3>
+                <div class="chart-container">
+                  <div class="pie-chart-mock">
+                    <svg viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e0e0e0" stroke-width="20" />
+                      <!-- Diseased 7% (red) -->
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#dc3545" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="0" />
+                      <!-- At Risk 15% (orange) -->
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ffc107" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="17.5" />
+                      <!-- Healthy 78% (green) -->
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#28a745" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="55.2" />
+                    </svg>
+                    <div class="pie-chart-center">
+                      <span class="percentage">78%</span>
+                      <span class="label">Healthy</span>
+                    </div>
+                  </div>
+                  <div class="chart-legend">
+                    <div><span class="legend-color healthy"></span> Healthy (78%)</div>
+                    <div><span class="legend-color risk"></span> At Risk (15%)</div>
+                    <div><span class="legend-color diseased"></span> Diseased (7%)</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: DISEASE DETECTION                   -->
+          <!-- ========================================== -->
+          <div id="disease-detection" class="dashboard-panel">
+            <div class="panel-two-column">
+              <!-- Left side: Upload card -->
+              <div class="dashboard-card upload-card">
+                <h3>Upload Leaf Image</h3>
+                <div class="drop-zone" id="leaf-drop-zone">
+                  <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                  <p>Drag & drop image here or <strong>click to browse</strong></p>
+                  <span class="file-spec">JPG, PNG, JPEG (Max. 5MB)</span>
+                  <input type="file" id="leaf-file-input" accept="image/*" class="file-input-hidden">
+                </div>
+                <div class="upload-preview-container" id="upload-preview-container" style="display:none;">
+                  <img id="upload-preview" src="#" alt="Leaf Preview">
+                  <button class="remove-upload-btn" id="remove-upload-btn"><i class="fas fa-trash"></i> Remove</button>
+                </div>
+                <button class="action-btn-green mt-4" id="analyze-leaf-btn" disabled>Scan Leaf for Diseases <i class="fas fa-qrcode"></i></button>
+              </div>
+
+              <!-- Right side: Results card (initially loading/hidden or placeholder) -->
+              <div class="dashboard-card result-card" id="detection-result-card">
+                <div class="empty-results-state" id="empty-results-state">
+                  <i class="fas fa-briefcase-medical empty-icon"></i>
+                  <h4>No Diagnosis Yet</h4>
+                  <p>Upload a crop leaf image on the left and click scan to run the AI diagnosis model.</p>
+                </div>
+                <div class="detection-results" id="detection-results" style="display:none;">
+                  <div class="result-header">
+                    <span class="tag-danger" id="result-tag">Disease Detected</span>
+                    <h3 id="result-disease-name">Early Blight</h3>
+                    <p class="sci-name" id="result-sci-name">Alternaria solani</p>
+                  </div>
+                  <div class="confidence-score-container">
+                    <div class="score-label">Confidence Score</div>
+                    <div class="score-wrapper">
+                      <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="result-confidence-bar" style="width: 94.21%;"></div>
+                      </div>
+                      <span class="score-val" id="result-confidence-val">94.21%</span>
+                    </div>
+                  </div>
+                  <div class="result-info-section">
+                    <h4>About Disease</h4>
+                    <p id="result-about">Early blight is a common fungal disease that affects tomato leaves causing dark, concentric rings (target spots).</p>
+                  </div>
+                  <div class="result-info-section">
+                    <h4>Treatment</h4>
+                    <ul id="result-treatment-list">
+                      <li>Remove infected leaves immediately.</li>
+                      <li>Spray neem oil or chlorothalonil fungicide.</li>
+                      <li>Maintain proper drip irrigation to avoid wet leaves.</li>
+                    </ul>
+                  </div>
+                  <div class="result-info-section">
+                    <h4>Prevention</h4>
+                    <ul id="result-prevention-list">
+                      <li>Use disease resistant seeds.</li>
+                      <li>Avoid overhead watering.</li>
+                      <li>Rotate crops annually.</li>
+                    </ul>
+                  </div>
+                  <button class="action-btn-outline w-100 mt-4" id="save-diagnosis-btn">Save to History <i class="fas fa-bookmark"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: CROP RECOMMENDATION                 -->
+          <!-- ========================================== -->
+          <div id="crop-recommendation" class="dashboard-panel">
+            <div class="panel-two-column">
+              <!-- Inputs Form -->
+              <div class="dashboard-card">
+                <h3>Enter Soil & Environment Details</h3>
+                <form id="crop-rec-form" class="soil-form">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="nitrogen">Nitrogen (N) (kg/ha)</label>
+                      <input type="number" id="nitrogen" placeholder="e.g. 60" value="60" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="phosphorus">Phosphorus (P) (kg/ha)</label>
+                      <input type="number" id="phosphorus" placeholder="e.g. 40" value="40" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="potassium">Potassium (K) (kg/ha)</label>
+                      <input type="number" id="potassium" placeholder="e.g. 40" value="40" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="temperature">Temperature (°C)</label>
+                      <input type="number" id="temperature" placeholder="e.g. 28" value="28" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="humidity">Humidity (%)</label>
+                      <input type="number" id="humidity" placeholder="e.g. 65" value="65" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="ph">pH Value</label>
+                      <input type="number" step="0.1" id="ph" placeholder="e.g. 6.5" value="6.5" required>
+                    </div>
+                    <div class="form-group full-width">
+                      <label for="rainfall">Rainfall (mm)</label>
+                      <input type="number" id="rainfall" placeholder="e.g. 1200" value="1200" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="action-btn-green mt-4 w-100">Get Recommendation <i class="fas fa-circle-check"></i></button>
+                </form>
+              </div>
+
+              <!-- Recommendation Result -->
+              <div class="dashboard-card">
+                <div class="empty-results-state" id="crop-empty-state">
+                  <i class="fas fa-seedling empty-icon"></i>
+                  <h4>Calculate Suitability</h4>
+                  <p>Submit the soil characteristics on the left to see the recommended crop.</p>
+                </div>
+                <div class="crop-rec-result" id="crop-result-card" style="display:none;">
+                  <div class="rec-header">
+                    <span class="recommendation-badge">Recommended Crop</span>
+                    <h2 id="recommended-crop-name">—</h2>
+                  </div>
+                  <div class="rec-score-section">
+                    <div class="suitability-label">Suitability Score</div>
+                    <div class="suitability-score-flex">
+                      <div class="progress-bar-bg flex-grow-1">
+                        <div class="progress-bar-fill bg-success" id="crop-suit-bar" style="width: 0%;"></div>
+                      </div>
+                      <span class="score-val" id="crop-suit-val">—</span>
+                    </div>
+                  </div>
+                  <div class="profit-estimate">
+                    <i class="fas fa-chart-line text-success"></i>
+                    <div>
+                      <span class="profit-label">Yield Outlook</span>
+                      <strong class="profit-value" id="crop-profit-val">—</strong>
+                    </div>
+                  </div>
+                  <div class="growing-tips">
+                    <h4>Growing Tips</h4>
+                    <ul id="crop-tips-list">
+                    </ul>
+                  </div>
+                  <div class="rec-visual">
+                    <img src="https://cdn-icons-png.flaticon.com/512/820/820559.png" alt="Maize" id="crop-result-img" class="crop-illustration" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: FERTILIZER RECOMMENDATION           -->
+          <!-- ========================================== -->
+          <div id="fertilizer-recommendation" class="dashboard-panel">
+            <div class="panel-two-column">
+              <!-- Inputs Form -->
+              <div class="dashboard-card">
+                <h3>Soil & Target Crop Details</h3>
+                <form id="fertilizer-form" class="soil-form">
+                  <div class="form-group">
+                    <label for="fert-crop">Target Crop</label>
+                    <select id="fert-crop">
+                      <option value="wheat">Wheat (गेहूं)</option>
+                      <option value="rice">Rice (धान)</option>
+                      <option value="maize" selected>Maize (मक्का)</option>
+                      <option value="sugarcane">Sugarcane (गन्ना)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="fert-soil">Soil Type</label>
+                    <select id="fert-soil">
+                      <option value="alluvial" selected>Alluvial Soil</option>
+                      <option value="black">Black Cotton Soil</option>
+                      <option value="red">Red Soil</option>
+                      <option value="sandy">Sandy Loam</option>
+                    </select>
+                  </div>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="fert-n">Nitrogen (N)</label>
+                      <input type="number" id="fert-n" value="50" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="fert-p">Phosphorus (P)</label>
+                      <input type="number" id="fert-p" value="35" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="fert-k">Potassium (K)</label>
+                      <input type="number" id="fert-k" value="30" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="fert-temperature">Temperature (°C)</label>
+                      <input type="number" id="fert-temperature" placeholder="e.g. 28" value="28" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="fert-humidity">Humidity (%)</label>
+                      <input type="number" id="fert-humidity" placeholder="e.g. 60" value="60" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="fert-moisture">Soil Moisture (%)</label>
+                      <input type="number" id="fert-moisture" placeholder="e.g. 40" value="40" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="action-btn-green mt-4 w-100">Calculate Fertilizer Needs <i class="fas fa-flask"></i></button>
+                </form>
+              </div>
+
+              <!-- Recommendation Result -->
+              <div class="dashboard-card">
+                <div class="empty-results-state" id="fert-empty-state" style="display:none;">
+                  <i class="fas fa-flask empty-icon"></i>
+                  <h4>Calculate Nutrients</h4>
+                  <p>Submit soil nutrients and crop target to see fertilizer requirements.</p>
+                </div>
+                <div class="fertilizer-result" id="fert-result-card">
+                  <div class="rec-header">
+                    <span class="recommendation-badge">Recommended Fertilizer</span>
+                    <h2 id="fert-rec-name">Urea</h2>
+                    <p class="rec-reason" id="fert-reason-val">Urea provides essential nitrogen for maize growth, and alluvial soils are generally fertile and can readily utilize this nutrient.</p>
+                  </div>
+                  <div class="dosage-card">
+                    <h4>Application Details</h4>
+                    <div class="detail-grid">
+                      <div class="detail-item">
+                        <span class="detail-name"><i class="fas fa-hand-holding-water"></i> How to Apply</span>
+                        <p class="detail-text" id="fert-application-val">—</p>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-name"><i class="fas fa-clock"></i> Best Time</span>
+                        <p class="detail-text" id="fert-time-val">—</p>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-name"><i class="fas fa-triangle-exclamation"></i> Precautions</span>
+                        <p class="detail-text" id="fert-precautions-val">—</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: WEATHER FORECAST                    -->
+          <!-- ========================================== -->
+          <div id="weather-forecast" class="dashboard-panel">
+            <div class="weather-forecast-layout">
+
+              <!-- City Search -->
+              <div class="dashboard-card">
+                <h3>Check Forecast For Your Location</h3>
+                <form id="weather-form" class="weather-search-form">
+                  <input type="text" id="weather-city-input" placeholder="e.g. Delhi, Pune, Nashik" value="Delhi" required>
+                  <button type="submit" class="action-btn-green"><i class="fas fa-magnifying-glass-location"></i> Get Forecast</button>
+                </form>
+              </div>
+
+              <!-- Loading State -->
+              <div class="dashboard-card weather-loading-state" id="weather-loading-state" style="display:none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Fetching forecast &amp; AI farming advice&hellip;</p>
+              </div>
+
+              <!-- Error State -->
+              <div class="dashboard-card empty-results-state" id="weather-error-state" style="display:none;">
+                <i class="fas fa-cloud-exclamation empty-icon"></i>
+                <h4>Couldn't Load Forecast</h4>
+                <p id="weather-error-message">Please check the city name and try again.</p>
+              </div>
+
+              <!-- Results -->
+              <div id="weather-results" style="display:none;">
+                <!-- 5-Day Forecast Grid -->
+                <div class="dashboard-card">
+                  <h3>5-Day Forecast <span class="weather-result-city" id="weather-result-city"></span></h3>
+                  <div class="five-day-grid" id="five-day-grid">
+                    <!-- Day cards injected by web.js -->
+                  </div>
+                </div>
+
+                <!-- Agriculture Advice -->
+                <div class="dashboard-card advice-forecast-card">
+                  <h3>Agricultural Advice <span class="ai-tag"><i class="fas fa-wand-magic-sparkles"></i> AI Generated</span></h3>
+                  <div class="advice-forecast-grid" id="advice-forecast-grid">
+                    <!-- Advice items injected by web.js -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: MARKET ANALYSIS                     -->
+          <!-- ========================================== -->
+          <div id="market-analysis" class="dashboard-panel">
+            <div class="market-analysis-layout">
+
+              <!-- Crop Search -->
+              <div class="dashboard-card">
+                <h3>Check Mandi Prices For Your Crop</h3>
+                <form id="market-form" class="weather-search-form">
+                  <input type="text" id="market-crop-input" placeholder="e.g. Wheat, Onion, Tomato" value="Wheat" required>
+                  <button type="submit" class="action-btn-green"><i class="fas fa-chart-simple"></i> Check Market Prices</button>
+                </form>
+              </div>
+
+              <!-- Empty State -->
+              <div class="dashboard-card empty-results-state" id="market-empty-state">
+                <i class="fas fa-chart-simple empty-icon"></i>
+                <h4>No Analysis Yet</h4>
+                <p>Enter a crop name above to see mandi prices and AI selling advice.</p>
+              </div>
+
+              <!-- Result -->
+              <div id="market-result-card" style="display:none;">
+
+                <!-- AI Analysis Summary -->
+                <div class="dashboard-card market-summary-card">
+                  <h3>Market Analysis <span class="ai-tag"><i class="fas fa-wand-magic-sparkles"></i> AI Generated</span></h3>
+                  <div class="market-summary-grid">
+                    <div class="market-stat price-range-stat">
+                      <span class="market-stat-label"><i class="fas fa-indian-rupee-sign"></i> Price Range</span>
+                      <strong id="market-price-range">-</strong>
+                    </div>
+                    <div class="market-stat best-market-stat">
+                      <span class="market-stat-label"><i class="fas fa-arrow-trend-up"></i> Best Market</span>
+                      <strong id="market-best-market">-</strong>
+                    </div>
+                    <div class="market-stat worst-market-stat">
+                      <span class="market-stat-label"><i class="fas fa-arrow-trend-down"></i> Worst Market</span>
+                      <strong id="market-worst-market">-</strong>
+                    </div>
+                  </div>
+                  <div class="market-advice-box">
+                    <i class="fas fa-lightbulb text-warning"></i>
+                    <p id="market-advice">-</p>
+                  </div>
+                </div>
+
+                <!-- Mandi Prices Table -->
+                <div class="dashboard-card w-100">
+                  <h3>Mandi-wise Prices</h3>
+                  <div class="table-responsive">
+                    <table class="history-table">
+                      <thead>
+                        <tr>
+                          <th>Market</th>
+                          <th>State</th>
+                          <th>Min Price</th>
+                          <th>Max Price</th>
+                          <th>Modal Price</th>
+                        </tr>
+                      </thead>
+                      <tbody id="market-prices-table-body">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: AI ASSISTANT                        -->
+          <!-- ========================================== -->
+          <div id="ai-assistant" class="dashboard-panel">
+            <div class="ai-assistant-layout">
+              
+              <!-- Chat Container -->
+              <div class="dashboard-card chat-card">
+                <div class="chat-messages" id="chat-messages">
+                  <!-- Bot greeting -->
+                  <div class="chat-bubble bot">
+                    <div class="bubble-content">
+                      <p>Hello! I am your AI Farming Assistant. How can I help you today?</p>
+                    </div>
+                  </div>
+                  <!-- Bubble user -->
+                  <div class="chat-bubble user">
+                    <div class="bubble-content">
+                      <p>My tomato leaves are turning yellow. What should I do?</p>
+                    </div>
+                  </div>
+                  <!-- Bubble bot -->
+                  <div class="chat-bubble bot">
+                    <div class="bubble-content">
+                      <p>Yellow leaves in tomato can be due to nitrogen deficiency or overwatering. Ensure proper drainage and use balanced fertilizer. Would you like fertilizer recommendations?</p>
+                    </div>
+                  </div>
+                  <div class="chat-bubble user">
+                    <div class="bubble-content">
+                      <p>Which crop is best to grow in July?</p>
+                    </div>
+                  </div>
+                  <div class="chat-bubble bot">
+                    <div class="bubble-content">
+                      <p>In July, you can grow crops like Okra, Brinjal, Cucumber, Green beans and Maize depending on your soil and region.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="chat-input-area">
+                  <input type="text" id="chat-input" placeholder="Type your message...">
+                  <button class="action-btn-green" id="chat-send-btn">Send <i class="fas fa-paper-plane"></i></button>
+                </div>
+              </div>
+
+              <!-- AI Assistant Mascot Card -->
+              <div class="dashboard-card assistant-mascot-card">
+                <div class="mascot-avatar-container">
+                  <img src="assets/farmer.jpg" alt="AI Farming Assistant" class="mascot-img" loading="lazy">
+                </div>
+                <h3>AI Farming Assistant</h3>
+                <p class="mascot-tagline">Ask me anything about crop diseases, soil health, weather impacts, or planting tips!</p>
+                <div class="suggested-prompts">
+                  <button class="prompt-chip" onclick="sendQuickPrompt('How do I treat Early Blight?')">"How do I treat Early Blight?"</button>
+                  <button class="prompt-chip" onclick="sendQuickPrompt('Best soil pH for Wheat?')">"Best soil pH for Wheat?"</button>
+                  <button class="prompt-chip" onclick="sendQuickPrompt('What fertilizer for Rice?')">"What fertilizer for Rice?"</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: YIELD PREDICTION                    -->
+          <!-- ========================================== -->
+          <div id="yield-prediction" class="dashboard-panel">
+            <div class="panel-two-column">
+              <!-- Inputs Form -->
+              <div class="dashboard-card">
+                <h3>Enter Details</h3>
+                <form id="yield-form" class="soil-form">
+                  <div class="form-group">
+                    <label for="yield-crop">Crop</label>
+                    <select id="yield-crop">
+                      <option value="Wheat" selected>Wheat (गेहूं)</option>
+                      <option value="Rice">Rice (धान)</option>
+                      <option value="Maize">Maize (मक्का)</option>
+                      <option value="Sugarcane">Sugarcane (गन्ना)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="yield-area">Area (in acres)</label>
+                    <input type="number" id="yield-area" value="5" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="yield-fertilizer">Fertilizer Used (kg)</label>
+                    <input type="number" id="yield-fertilizer" value="120" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="yield-soil">Soil Quality</label>
+                    <select id="yield-soil">
+                      <option value="Good" selected>Good</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Poor">Poor</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="yield-rainfall">Rainfall (mm)</label>
+                    <input type="number" id="yield-rainfall" value="450" required>
+                  </div>
+                  <button type="submit" class="action-btn-green mt-4 w-100">Predict Yield <i class="fas fa-chart-line"></i></button>
+                </form>
+              </div>
+
+              <!-- Prediction Output -->
+              <div class="dashboard-card">
+                <div class="empty-results-state" id="yield-error-state" style="display:none;">
+                  <i class="fas fa-triangle-exclamation empty-icon"></i>
+                  <h4>Couldn't Predict Yield</h4>
+                  <p id="yield-error-message">Please check your inputs and try again.</p>
+                </div>
+                <div class="yield-prediction-result" id="yield-result-card">
+                  <div class="predicted-main">
+                    <span class="recommendation-badge">Predicted Yield</span>
+                    <h2 id="predicted-yield-val">22.4 Quintals / acre</h2>
+                  </div>
+                  <div class="predicted-sub-metrics">
+                    <div class="predicted-metric-box">
+                      <span>Total Estimated Yield</span>
+                      <strong id="predicted-total-val">112 Quintals</strong>
+                    </div>
+                    <div class="predicted-metric-box">
+                      <span>Model Accuracy</span>
+                      <strong>92.6%</strong>
+                    </div>
+                  </div>
+                  <div class="yield-trend">
+                    <h4>Historical Trend & Prediction</h4>
+                    <div class="trend-chart-mock">
+                      <svg viewBox="0 0 200 80" class="svg-trend-chart">
+                        <!-- Grid lines -->
+                        <line x1="10" y1="10" x2="190" y2="10" stroke="#f0f0f0" stroke-width="1" />
+                        <line x1="10" y1="40" x2="190" y2="40" stroke="#f0f0f0" stroke-width="1" />
+                        <line x1="10" y1="70" x2="190" y2="70" stroke="#f0f0f0" stroke-width="1" />
+                        <!-- Chart Line -->
+                        <path d="M10,65 L50,55 L90,48 L130,42 L170,25" fill="none" stroke="#28a745" stroke-width="3" />
+                        <!-- Chart Dots -->
+                        <circle cx="10" cy="65" r="4" fill="#28a745" />
+                        <circle cx="50" cy="55" r="4" fill="#28a745" />
+                        <circle cx="90" cy="48" r="4" fill="#28a745" />
+                        <circle cx="130" cy="42" r="4" fill="#28a745" />
+                        <circle cx="170" cy="25" r="4" fill="#ffc107" class="pulse-chart-dot" />
+                        <!-- Labels -->
+                        <text x="10" y="78" font-size="8" fill="#888">2021</text>
+                        <text x="50" y="78" font-size="8" fill="#888">2022</text>
+                        <text x="90" y="78" font-size="8" fill="#888">2023</text>
+                        <text x="130" y="78" font-size="8" fill="#888">2024</text>
+                        <text x="170" y="78" font-size="8" fill="#ffc107" font-weight="bold">2025(P)</text>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: HISTORY LOG                         -->
+          <!-- ========================================== -->
+          <div id="history-log" class="dashboard-panel">
+            <div class="dashboard-card w-100">
+              <h3>Interaction & Calculation History</h3>
+              <div class="table-responsive">
+                <table class="history-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Activity Type</th>
+                      <th>Input Parameters</th>
+                      <th>Result / Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="history-table-body">
+                    <tr>
+                      <td>17 May 2025, 02:30 PM</td>
+                      <td><span class="activity-type disease"><i class="fas fa-virus-slash"></i> Disease Detection</span></td>
+                      <td>Tomato Leaf Image (Upload)</td>
+                      <td>Early Blight (94.21% Confidence)</td>
+                    </tr>
+                    <tr>
+                      <td>16 May 2025, 11:15 AM</td>
+                      <td><span class="activity-type crop"><i class="fas fa-seedling"></i> Crop Rec.</span></td>
+                      <td>N:60, P:40, K:40, pH:6.5, Temp:28°C</td>
+                      <td>Recommended Crop: Maize (92% Suitability)</td>
+                    </tr>
+                    <tr>
+                      <td>15 May 2025, 09:40 AM</td>
+                      <td><span class="activity-type fertilizer"><i class="fas fa-flask"></i> Fertilizer Rec.</span></td>
+                      <td>Maize, Alluvial Soil, N:50, P:35, K:30</td>
+                      <td>Urea (80kg), DAP (50kg), MOP (30kg)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================== -->
+          <!-- PANEL: MY PROFILE                          -->
+          <!-- ========================================== -->
+          <div id="my-profile" class="dashboard-panel">
+            <div class="panel-two-column">
+              <!-- Farmer Info Card -->
+              <div class="dashboard-card text-center">
+                <div class="profile-avatar-large">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" alt="Ram Kumar Image" loading="lazy">
+                </div>
+                <h2>Ram Kumar</h2>
+                <p class="text-muted">Registered Farmer since 2022</p>
+                <div class="badge-row mt-3">
+                  <span class="badge badge-gold"><i class="fas fa-award"></i> Verified Farmer</span>
+                  <span class="badge badge-green"><i class="fas fa-circle-check"></i> Aadhaar Linked</span>
+                </div>
+              </div>
+
+              <!-- Farm Details Form -->
+              <div class="dashboard-card">
+                <h3>Farm Details</h3>
+                <div class="profile-details-grid">
+                  <div class="profile-detail-item">
+                    <span class="detail-label">Farmer ID</span>
+                    <strong class="detail-value">KS-98745-DEL</strong>
+                  </div>
+                  <div class="profile-detail-item">
+                    <span class="detail-label">Location</span>
+                    <strong class="detail-value">Najafgarh, New Delhi, India</strong>
+                  </div>
+                  <div class="profile-detail-item">
+                    <span class="detail-label">Total Land Area</span>
+                    <strong class="detail-value">5.5 Acres</strong>
+                  </div>
+                  <div class="profile-detail-item">
+                    <span class="detail-label">Soil Type</span>
+                    <strong class="detail-value">Clay Loam / Alluvial</strong>
+                  </div>
+                  <div class="profile-detail-item">
+                    <span class="detail-label">Primary Crop</span>
+                    <strong class="detail-value">Wheat / Maize</strong>
+                  </div>
+                  <div class="profile-detail-item">
+                    <span class="detail-label">Irrigation Source</span>
+                    <strong class="detail-value">Tubewell & Drip System</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dashboard Footer -->
+        <footer class="dashboard-footer">
+          <div class="footer-bottom">
+            <span>&copy; 2025 KrishiSanchar. All rights reserved.</span>
+            <div class="footer-links">
+              <a href="javascript:void(0)">About Us</a>
+              <a href="javascript:void(0)">Contact Us</a>
+              <a href="javascript:void(0)">Privacy Policy</a>
+              <a href="javascript:void(0)">Terms & Conditions</a>
+            </div>
+          </div>
+        </footer>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Apply Scheme Modal -->
+  <div id="scheme-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Scheme Application</h3>
+        <span class="close-modal-btn" onclick="closeSchemeModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="scheme-apply-form" onsubmit="submitSchemeApplication(event)">
+          <div class="form-group">
+            <label for="applicant-name">Applicant Name</label>
+            <input type="text" id="applicant-name" value="Ram Kumar" required>
+          </div>
+          <div class="form-group">
+            <label for="applicant-aadhaar">Aadhaar Card Number</label>
+            <input type="text" id="applicant-aadhaar" value="XXXX-XXXX-8921" required>
+          </div>
+          <div class="form-group">
+            <label for="applicant-land">Land Holding (in Hectares)</label>
+            <input type="number" step="0.1" id="applicant-land" value="2.2" required>
+          </div>
+          <div class="form-group">
+            <label for="applicant-bank">Bank Account Number (linked to Aadhaar)</label>
+            <input type="text" id="applicant-bank" value="SBI-XXXXXX324" required>
+          </div>
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="agree-terms" required checked>
+            <label for="agree-terms">I self-declare that the information given above is true and correct.</label>
+          </div>
+          <button type="submit" class="action-btn-green w-100 mt-3">Submit Application <i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast">Application submitted successfully!</div>
+
+  <!-- Main JavaScript File -->
+  <script src="web.js" defer></script>
+</body>
+</html>
