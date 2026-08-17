@@ -1,28 +1,13 @@
-// ==========================================================================
-// KRISHISANCHAR APPLICATION LOGIC (app.js)
-// ==========================================================================
+const API_BASE = 'https://krishi-sanchar.onrender.com';
 
-// --------------------------------------------------------------------------
-// API CONFIG
-// Each backend (app.py, Fertilizer.py, Yield_prediction.py, ...) is its own
-// FastAPI service. Run each with its own uvicorn port, e.g.:
-//   uvicorn app:app --port 8000               (crop recommendation)
-//   uvicorn Fertilizer:app --port 8001         (fertilizer recommendation)
-//   uvicorn Yield_prediction:app --port 8002   (yield prediction)
-//   uvicorn market_analysis:app --port 8003
-//   uvicorn weather_service:app --port 8004
-//   uvicorn ai_assistant:app --port 8005
-//   uvicorn plant_disease_detection:app --port 8006
-// Update the values below if you use different ports/hosts.
-// --------------------------------------------------------------------------
 const API = {
-  crop: 'http://127.0.0.1:8000',
-  fertilizer: 'http://127.0.0.1:8001',
-  yieldPrediction: 'http://127.0.0.1:8002',
-  market: 'http://127.0.0.1:8003',
-  weather: 'http://127.0.0.1:8004',
-  assistant: 'http://127.0.0.1:8005',
-  disease: 'http://127.0.0.1:8006',
+  crop: `${API_BASE}/api/crop`,
+  fertilizer: `${API_BASE}/api/fertilizer`,
+  yieldPrediction: `${API_BASE}/api/yield`,
+  market: `${API_BASE}/api/market`,
+  weather: `${API_BASE}/api/weather`,
+  assistant: `${API_BASE}/api/assistant`,
+  disease: `${API_BASE}/api/disease`,
 };
 
 // Local fallback icons — the crop API doesn't return an image, so we map
