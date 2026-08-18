@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+
+numpy
+Pillow
+tensorflow-cpu
+
+langchain
+langchain-google-genai

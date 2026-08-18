@@ -1,0 +1,78 @@
+services:
+  - type: web
+    name: krishisanchar-crop
+    runtime: python
+    plan: free
+    rootDir: Crop recommendation
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: krishisanchar-fertilizer
+    runtime: python
+    plan: free
+    rootDir: Fertilizer recommendation
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn Fertilizer:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: krishisanchar-yield
+    runtime: python
+    plan: free
+    rootDir: Yield Prediction
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn Yield_prediction:app --host 0.0.0.0 --port $PORT
+
+  - type: web
+    name: krishisanchar-market
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn market_analysis:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MARKETPRICE_API_KEY
+        sync: false
+
+  - type: web
+    name: krishisanchar-weather
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn weather_service:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+
+  - type: web
+    name: krishisanchar-assistant
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn ai_assistant:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: krishisanchar-disease
+    runtime: python
+    plan: free
+    rootDir: plant disease
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn plant_disease_detection:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false

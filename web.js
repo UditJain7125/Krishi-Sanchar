@@ -1,13 +1,18 @@
-const API_BASE = 'https://krishi-sanchar.onrender.com';
-
+// Each service now deploys as its own Render Web Service (see render.yaml),
+// so there's no shared API_BASE or /api/* prefix anymore — every feature
+// talks directly to its own service's root.
+//
+// After your first Render deploy, replace these with the actual URLs Render
+// assigns (Dashboard → each service → the URL shown at the top, usually
+// https://<service-name>.onrender.com if that name was free).
 const API = {
-  crop: `${API_BASE}/api/crop`,
-  fertilizer: `${API_BASE}/api/fertilizer`,
-  yieldPrediction: `${API_BASE}/api/yield`,
-  market: `${API_BASE}/api/market`,
-  weather: `${API_BASE}/api/weather`,
-  assistant: `${API_BASE}/api/assistant`,
-  disease: `${API_BASE}/api/disease`,
+  crop: 'https://krishisanchar-crop.onrender.com',
+  fertilizer: 'https://krishisanchar-fertilizer.onrender.com',
+  yieldPrediction: 'https://krishisanchar-yield.onrender.com',
+  market: 'https://krishisanchar-market.onrender.com',
+  weather: 'https://krishisanchar-weather.onrender.com',
+  assistant: 'https://krishisanchar-assistant.onrender.com',
+  disease: 'https://krishisanchar-disease.onrender.com',
 };
 
 // Local fallback icons — the crop API doesn't return an image, so we map

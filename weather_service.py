@@ -16,7 +16,7 @@ app = FastAPI()
 # Tighten allow_origins to your actual frontend origin(s) in production.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://uditjain7125.github.io"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

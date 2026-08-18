@@ -25,7 +25,7 @@ app = FastAPI(
 # and weather_service.py.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://uditjain7125.github.io"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
