@@ -5,7 +5,7 @@ python-dotenv
 
 numpy
 Pillow
-tensorflow-cpu
+ai-edge-litert
 
 langchain
 langchain-google-genai

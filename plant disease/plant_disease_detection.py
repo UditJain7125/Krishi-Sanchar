@@ -10,7 +10,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_google_genai import ChatGoogleGenerativeAI
 from PIL import Image
-from tensorflow.keras.models import load_model
+from ai_edge_litert.interpreter import Interpreter
 
 load_dotenv()
 
@@ -39,9 +39,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 IMG_SIZE = 224  # must match img_size used during training in the notebook
 
-# Files produced by plant_disease_detection.ipynb (cells 22-26). Place both
-# next to this script, or point these paths at wherever you saved them.
-MODEL_PATH = os.getenv("PLANT_DISEASE_MODEL_PATH", "plant_disease_prediction_model.h5")
+# The .tflite file is produced by running convert_to_tflite.py locally
+# (once) against the .h5 file from plant_disease_detection.ipynb — see that
+# script's docstring. class_indices.json still comes straight from the
+# notebook (cell 24), unchanged.
+MODEL_PATH = os.getenv("PLANT_DISEASE_MODEL_PATH", "plant_disease_prediction_model.tflite")
 CLASS_INDICES_PATH = os.getenv("PLANT_DISEASE_CLASS_INDICES_PATH", "class_indices.json")
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB, matches the frontend's stated limit
@@ -52,12 +54,16 @@ MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB, matches the frontend's stated limit
 # -----------------------------
 
 try:
-    model = load_model(MODEL_PATH)
+    interpreter = Interpreter(model_path=MODEL_PATH)
+    interpreter.allocate_tensors()
+    _input_details = interpreter.get_input_details()
+    _output_details = interpreter.get_output_details()
 except Exception as e:
     raise RuntimeError(
         f"Could not load plant disease model from '{MODEL_PATH}'. "
-        "Run plant_disease_detection.ipynb first (it saves the .h5 file "
-        f"via model.save(...)) or set PLANT_DISEASE_MODEL_PATH. Original error: {e}"
+        "Run convert_to_tflite.py locally first to produce this .tflite "
+        f"file from your trained .h5 model, or set PLANT_DISEASE_MODEL_PATH. "
+        f"Original error: {e}"
     )
 
 try:
@@ -217,7 +223,13 @@ async def predict_disease(file: UploadFile = File(...)):
     img_array = _load_and_preprocess_image(file_bytes)
 
     try:
-        predictions = model.predict(img_array)
+        # Note: the interpreter isn't safe to call from multiple requests
+        # truly concurrently. That's fine here since Render's free tier
+        # runs a single worker (WEB_CONCURRENCY=1) and FastAPI processes
+        # this synchronous block without yielding mid-inference.
+        interpreter.set_tensor(_input_details[0]["index"], img_array)
+        interpreter.invoke()
+        predictions = interpreter.get_tensor(_output_details[0]["index"])
     except Exception as e:
         raise HTTPException(
             status_code=502,
