@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import time
 from typing import Optional
 
@@ -262,6 +263,11 @@ Do not include any text before or after the JSON object.
             raw = raw.strip("`")
             if raw.lower().startswith("json"):
                 raw = raw[4:].strip()
+
+        # Gemini occasionally emits a trailing comma before a closing
+        # } or ] despite instructions not to — that's invalid JSON and
+        # makes json.loads() below raise, so strip it defensively.
+        raw = re.sub(r",(\s*[}\]])", r"\1", raw)
 
         ai_analysis = json.loads(raw)
 
