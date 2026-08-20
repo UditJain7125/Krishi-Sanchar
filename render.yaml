@@ -89,5 +89,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PLANT_DISEASE_MODEL_URL
+        sync: false
       - key: GEMINI_API_KEY
         sync: false

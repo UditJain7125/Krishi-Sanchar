@@ -5,6 +5,7 @@ python-dotenv
 
 numpy
 Pillow
+requests
 ai-edge-litert
 
 langchain

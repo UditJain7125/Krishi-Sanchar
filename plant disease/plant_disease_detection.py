@@ -5,6 +5,7 @@ import re
 from typing import Optional
 
 import numpy as np
+import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,10 +44,46 @@ IMG_SIZE = 224  # must match img_size used during training in the notebook
 # (once) against the .h5 file from plant_disease_detection.ipynb — see that
 # script's docstring. class_indices.json still comes straight from the
 # notebook (cell 24), unchanged.
+#
+# The .tflite file itself (182MB+) is too large for a normal git push
+# (GitHub blocks files over 100MB) and Render's ephemeral filesystem
+# doesn't persist uploads between deploys anyway, so instead of committing
+# it, we download it from a GitHub Release asset at startup. Upload the
+# file as a release asset on GitHub (Releases -> Draft a new release ->
+# attach file, up to 2GB, no Git LFS needed), then set
+# PLANT_DISEASE_MODEL_URL to that asset's direct download URL — it looks
+# like:
+#   https://github.com/<user>/<repo>/releases/download/<tag>/<filename>
+MODEL_URL = os.getenv("PLANT_DISEASE_MODEL_URL")
 MODEL_PATH = os.getenv("PLANT_DISEASE_MODEL_PATH", "plant_disease_prediction_model.tflite")
 CLASS_INDICES_PATH = os.getenv("PLANT_DISEASE_CLASS_INDICES_PATH", "class_indices.json")
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB, matches the frontend's stated limit
+
+
+def _ensure_model_downloaded() -> None:
+    """Download the .tflite model from MODEL_URL if it isn't already on
+    disk. Render's filesystem is ephemeral, so this runs on every fresh
+    deploy/restart — it's a one-time ~tens-of-MB download at startup, not
+    per-request."""
+    if os.path.exists(MODEL_PATH):
+        return
+
+    if not MODEL_URL:
+        raise RuntimeError(
+            f"Model file '{MODEL_PATH}' not found locally and "
+            "PLANT_DISEASE_MODEL_URL is not set. Either place the .tflite "
+            "file next to this script, or set PLANT_DISEASE_MODEL_URL to "
+            "a GitHub Release asset URL for it."
+        )
+
+    print(f"Downloading model from {MODEL_URL} ...")
+    response = requests.get(MODEL_URL, stream=True, timeout=120)
+    response.raise_for_status()
+    with open(MODEL_PATH, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8 * 1024 * 1024):
+            f.write(chunk)
+    print(f"Model downloaded to {MODEL_PATH}")
 
 
 # -----------------------------
@@ -54,6 +91,7 @@ MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB, matches the frontend's stated limit
 # -----------------------------
 
 try:
+    _ensure_model_downloaded()
     interpreter = Interpreter(model_path=MODEL_PATH)
     interpreter.allocate_tensors()
     _input_details = interpreter.get_input_details()
