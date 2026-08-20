@@ -6,13 +6,13 @@
 // assigns (Dashboard → each service → the URL shown at the top, usually
 // https://<service-name>.onrender.com if that name was free).
 const API = {
-  crop: 'https://krishisanchar-crop.onrender.com',
-  fertilizer: 'https://krishisanchar-fertilizer.onrender.com',
-  yieldPrediction: 'https://krishisanchar-yield.onrender.com',
-  market: 'https://krishisanchar-market.onrender.com',
-  weather: 'https://krishisanchar-weather.onrender.com',
-  assistant: 'https://krishisanchar-assistant.onrender.com',
-  disease: 'https://krishisanchar-disease.onrender.com',
+  crop: 'https://krishisanchar-crop-c3wq.onrender.com',
+  fertilizer: 'https://krishisanchar-fertilizer-c3wq.onrender.com',
+  yieldPrediction: 'https://krishisanchar-yield-c3wq.onrender.com',
+  market: 'https://krishisanchar-market-c3wq.onrender.com',
+  weather: 'https://krishisanchar-weather-c3wq.onrender.com',
+  assistant: 'https://krishisanchar-assistant-c3wq.onrender.com',
+  disease: 'https://krishisanchar-disease-c3wq.onrender.com',
 };
 
 // Local fallback icons — the crop API doesn't return an image, so we map
