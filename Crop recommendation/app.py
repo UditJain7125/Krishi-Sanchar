@@ -18,7 +18,7 @@ app = FastAPI()
 # to call this API from the browser.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://uditjain7125.github.io"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -32,7 +32,7 @@ with open(BASE_DIR / "min_max_scaler.pkl", "rb") as f:
     min_max_scaler = pickle.load(f)
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.1-flash-lite",
     temperature=0.2,
     max_output_tokens=500,
     google_api_key=os.getenv("GEMINI_API_KEY")
@@ -146,16 +146,18 @@ def crop_recommendation(data: ModelInput):
     prediction = crop_model.predict(scaled)
     crop = crop_dict[int(prediction[0])]
 
-    result = chain.invoke({
-        "crop": crop,
-        **data.model_dump()
-    })
-
     try:
+        result = chain.invoke({
+            "crop": crop,
+            **data.model_dump()
+        })
         advice = json.loads(result.content)
-    except Exception:
+    except Exception as e:
+        # If Gemini is unavailable (rate limit, quota, network, bad JSON),
+        # still return the core prediction — the AI write-up is a bonus,
+        # not the reason this endpoint exists.
         advice = {
-            "reason": result.content,
+            "reason": f"AI explanation unavailable right now: {e}",
             "fertilizer": "",
             "irrigation": "",
             "diseases": "",

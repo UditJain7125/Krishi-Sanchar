@@ -118,7 +118,7 @@ except Exception as e:
 
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.1-flash-lite",
     temperature=0.2,
     max_output_tokens=400,
     google_api_key=GEMINI_API_KEY,

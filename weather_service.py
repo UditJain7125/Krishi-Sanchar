@@ -83,7 +83,7 @@ Return JSON only:
 
     try:
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite",
+            model="gemini-3.1-flash-lite",
             google_api_key=gemini_api_key,
             temperature=0
         )

@@ -19,7 +19,7 @@ app = FastAPI()
 # to call this API from the browser.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://uditjain7125.github.io"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -36,7 +36,7 @@ with open(BASE_DIR / "feature_columns.pkl", "rb") as f:
     feature_columns = pickle.load(f)
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.1-flash-lite",
     temperature=0.2,
     max_output_tokens=500,
     google_api_key=os.getenv("GEMINI_API_KEY"),
@@ -104,19 +104,21 @@ def fertilizer_recommendation(data: ModelInput):
     pred = fertilizer_model.predict(encoded)[0]
     fertilizer_name = label_encoder.inverse_transform([pred])[0]
 
-    response = chain.invoke({
-        "crop_type": data.Crop_type,
-        "soil_type": data.Soil_type,
-        "fertilizer_name": fertilizer_name,
-    })
-
-    raw_text = response.content.strip()
-    raw_text = raw_text.replace("```json", "").replace("```", "").strip()
-
     try:
+        response = chain.invoke({
+            "crop_type": data.Crop_type,
+            "soil_type": data.Soil_type,
+            "fertilizer_name": fertilizer_name,
+        })
+
+        raw_text = response.content.strip()
+        raw_text = raw_text.replace("```json", "").replace("```", "").strip()
         explanation = json.loads(raw_text)
-    except json.JSONDecodeError:
-        explanation = {"raw_response": raw_text}
+    except Exception as e:
+        # If Gemini is unavailable (rate limit, quota, network, bad JSON),
+        # still return the recommended fertilizer — the AI explanation is
+        # a bonus, not the reason this endpoint exists.
+        explanation = {"raw_response": f"AI explanation unavailable right now: {e}"}
 
     return {
         "recommended_fertilizer": fertilizer_name,

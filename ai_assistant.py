@@ -18,7 +18,7 @@ if not api_key:
 
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.1-flash-lite",
     temperature=0.4,
     google_api_key=api_key
 )
@@ -55,6 +55,9 @@ def ask_farming_assistant(question: str):
         {"question": question}
     )
     return response.content
+    # Note: failures here (rate limits, quota, network) are caught by the
+    # /ask route below and surfaced as a 502 with details, not silently
+    # swallowed.
 
 
 # -----------------------------
