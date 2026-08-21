@@ -6,6 +6,7 @@ import pickle
 import pandas as pd
 import os
 import json
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -64,6 +65,23 @@ Keep each value simple, conversational, and free of bullet points, numbering, or
 chain = prompt | llm
 
 
+def _content_to_text(content) -> str:
+    """Newer Gemini models (3.x) can return .content as a list of parts
+    instead of a plain string; older ones return a plain string. Normalize
+    either shape to a single string before json.loads()/regex/etc."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(item.get("text") or item.get("content") or "")
+        return "".join(parts)
+    return "" if content is None else str(content)
+
+
 class ModelInput(BaseModel):
     temperature: float
     humidity: float
@@ -111,8 +129,9 @@ def fertilizer_recommendation(data: ModelInput):
             "fertilizer_name": fertilizer_name,
         })
 
-        raw_text = response.content.strip()
+        raw_text = _content_to_text(response.content).strip()
         raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+        raw_text = re.sub(r",(\s*[}\]])", r"\1", raw_text)
         explanation = json.loads(raw_text)
     except Exception as e:
         # If Gemini is unavailable (rate limit, quota, network, bad JSON),

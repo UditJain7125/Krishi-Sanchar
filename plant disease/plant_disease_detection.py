@@ -125,6 +125,23 @@ llm = ChatGoogleGenerativeAI(
 )
 
 
+def _content_to_text(content) -> str:
+    """Newer Gemini models (3.x) can return .content as a list of parts
+    instead of a plain string; older ones return a plain string. Normalize
+    either shape to a single string before json.loads()/regex/etc."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(item.get("text") or item.get("content") or "")
+        return "".join(parts)
+    return "" if content is None else str(content)
+
+
 # -----------------------------
 # Simple in-memory cache
 # -----------------------------
@@ -209,7 +226,7 @@ before or after the JSON object.
 
     try:
         result = llm.invoke(prompt)
-        raw = result.content.strip()
+        raw = _content_to_text(result.content).strip()
         raw = re.sub(r"```json|```", "", raw).strip()
         advice = json.loads(raw)
 

@@ -50,14 +50,28 @@ prompt = ChatPromptTemplate.from_messages([
 farming_chain = prompt | llm
 
 
+def _content_to_text(content) -> str:
+    """Newer Gemini models (3.x) can return .content as a list of parts
+    instead of a plain string; older ones return a plain string. Normalize
+    either shape to a single string so the frontend always gets plain text."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(item.get("text") or item.get("content") or "")
+        return "".join(parts)
+    return "" if content is None else str(content)
+
+
 def ask_farming_assistant(question: str):
     response = farming_chain.invoke(
         {"question": question}
     )
-    return response.content
-    # Note: failures here (rate limits, quota, network) are caught by the
-    # /ask route below and surfaced as a 502 with details, not silently
-    # swallowed.
+    return _content_to_text(response.content)
 
 
 # -----------------------------
