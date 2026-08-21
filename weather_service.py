@@ -28,6 +28,23 @@ gemini_api_key = os.getenv("GEMINI_API_KEY")
 BASE_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
 
+def _content_to_text(content) -> str:
+    """Newer Gemini models (3.x) can return .content as a list of parts
+    instead of a plain string; older ones return a plain string. Normalize
+    either shape to a single string before json.loads()/regex/etc."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(item.get("text") or item.get("content") or "")
+        return "".join(parts)
+    return "" if content is None else str(content)
+
+
 @app.get("/weather/{city}")
 def weather(city: str):
 
@@ -90,7 +107,7 @@ Return JSON only:
 
         result = llm.invoke(prompt)
 
-        ai_text = result.content
+        ai_text = _content_to_text(result.content)
         ai_text = re.sub(r"```json|```", "", ai_text).strip()
 
         try:

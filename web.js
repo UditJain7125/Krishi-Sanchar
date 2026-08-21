@@ -782,10 +782,15 @@ function markdownToHtml(rawText) {
 
   lines.forEach(line => {
     const trimmed = line.trim();
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)/);
     const bulletMatch = trimmed.match(/^[*-]\s+(.*)/);
     const numberedMatch = trimmed.match(/^\d+[.)]\s+(.*)/);
 
-    if (bulletMatch) {
+    if (headingMatch) {
+      flushList();
+      const level = Math.min(headingMatch[1].length, 6);
+      html += `<h${level}>${inlineFormat(headingMatch[2])}</h${level}>`;
+    } else if (bulletMatch) {
       if (listType !== 'ul') { flushList(); listType = 'ul'; }
       listItems.push(inlineFormat(bulletMatch[1]));
     } else if (numberedMatch) {
