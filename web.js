@@ -782,11 +782,15 @@ function markdownToHtml(rawText) {
 
   lines.forEach(line => {
     const trimmed = line.trim();
+    const hrMatch = /^([-*_])(?:\s*\1){2,}$/.test(trimmed);
     const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)/);
     const bulletMatch = trimmed.match(/^[*-]\s+(.*)/);
     const numberedMatch = trimmed.match(/^\d+[.)]\s+(.*)/);
 
-    if (headingMatch) {
+    if (hrMatch) {
+      flushList();
+      html += '<hr>';
+    } else if (headingMatch) {
       flushList();
       const level = Math.min(headingMatch[1].length, 6);
       html += `<h${level}>${inlineFormat(headingMatch[2])}</h${level}>`;
