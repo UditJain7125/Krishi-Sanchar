@@ -99,7 +99,7 @@
           <div class="topbar-right">
             <div class="location-badge">
               <i class="fas fa-map-marker-alt"></i>
-              <span id="topbar-location">—</span>
+              <span>New Delhi, India</span>
             </div>
             <div class="notification-bell" onclick="toggleNotifications()">
               <i class="fas fa-bell"></i>
@@ -115,7 +115,7 @@
             <div class="user-profile">
               <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" alt="User Profile" class="user-avatar" loading="lazy">
               <div class="user-info">
-                <span class="user-name" id="topbar-user-name">—</span>
+                <span class="user-name">Ram Kumar</span>
                 <span class="user-role">Farmer</span>
               </div>
             </div>
@@ -262,9 +262,23 @@
                         <th>Date</th>
                       </tr>
                     </thead>
-                    <tbody id="recent-activity-table-body">
+                    <tbody>
+                      <tr>
+                        <td><span class="activity-type disease"><i class="fas fa-virus-slash"></i> Disease Detection</span></td>
+                        <td>Tomato Leaf - Early Blight</td>
+                        <td>17 May 2025</td>
+                      </tr>
+                      <tr>
+                        <td><span class="activity-type crop"><i class="fas fa-seedling"></i> Crop Rec.</span></td>
+                        <td>Recommended Crop: Maize</td>
+                        <td>16 May 2025</td>
+                      </tr>
+                      <tr>
+                        <td><span class="activity-type fertilizer"><i class="fas fa-flask"></i> Fertilizer Rec.</span></td>
+                        <td>Urea, DAP, Potash</td>
+                        <td>15 May 2025</td>
+                      </tr>
                     </tbody>
-
                   </table>
                 </div>
                 <a href="javascript:void(0)" class="view-history-link" onclick="switchDashboardTab('history-log')">View All History <i class="fas fa-arrow-right"></i></a>
@@ -330,31 +344,37 @@
                 </div>
                 <div class="detection-results" id="detection-results" style="display:none;">
                   <div class="result-header">
-                    <span class="tag-danger" id="result-tag">—</span>
-                    <h3 id="result-disease-name">—</h3>
-                    <p class="sci-name" id="result-sci-name">—</p>
+                    <span class="tag-danger" id="result-tag">Disease Detected</span>
+                    <h3 id="result-disease-name">Early Blight</h3>
+                    <p class="sci-name" id="result-sci-name">Alternaria solani</p>
                   </div>
                   <div class="confidence-score-container">
                     <div class="score-label">Confidence Score</div>
                     <div class="score-wrapper">
                       <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" id="result-confidence-bar" style="width: 0%;"></div>
+                        <div class="progress-bar-fill" id="result-confidence-bar" style="width: 94.21%;"></div>
                       </div>
-                      <span class="score-val" id="result-confidence-val">0%</span>
+                      <span class="score-val" id="result-confidence-val">94.21%</span>
                     </div>
                   </div>
                   <div class="result-info-section">
                     <h4>About Disease</h4>
-                    <p id="result-about">—</p>
+                    <p id="result-about">Early blight is a common fungal disease that affects tomato leaves causing dark, concentric rings (target spots).</p>
                   </div>
                   <div class="result-info-section">
                     <h4>Treatment</h4>
                     <ul id="result-treatment-list">
+                      <li>Remove infected leaves immediately.</li>
+                      <li>Spray neem oil or chlorothalonil fungicide.</li>
+                      <li>Maintain proper drip irrigation to avoid wet leaves.</li>
                     </ul>
                   </div>
                   <div class="result-info-section">
                     <h4>Prevention</h4>
                     <ul id="result-prevention-list">
+                      <li>Use disease resistant seeds.</li>
+                      <li>Avoid overhead watering.</li>
+                      <li>Rotate crops annually.</li>
                     </ul>
                   </div>
                   <button class="action-btn-outline w-100 mt-4" id="save-diagnosis-btn">Save to History <i class="fas fa-bookmark"></i></button>
@@ -375,31 +395,31 @@
                   <div class="form-grid">
                     <div class="form-group">
                       <label for="nitrogen">Nitrogen (N) (kg/ha)</label>
-                      <input type="number" id="nitrogen" required>
+                      <input type="number" id="nitrogen" placeholder="e.g. 60" value="60" required>
                     </div>
                     <div class="form-group">
                       <label for="phosphorus">Phosphorus (P) (kg/ha)</label>
-                      <input type="number" id="phosphorus" required>
+                      <input type="number" id="phosphorus" placeholder="e.g. 40" value="40" required>
                     </div>
                     <div class="form-group">
                       <label for="potassium">Potassium (K) (kg/ha)</label>
-                      <input type="number" id="potassium" required>
+                      <input type="number" id="potassium" placeholder="e.g. 40" value="40" required>
                     </div>
                     <div class="form-group">
                       <label for="temperature">Temperature (°C)</label>
-                      <input type="number" id="temperature" required>
+                      <input type="number" id="temperature" placeholder="e.g. 28" value="28" required>
                     </div>
                     <div class="form-group">
                       <label for="humidity">Humidity (%)</label>
-                      <input type="number" id="humidity" required>
+                      <input type="number" id="humidity" placeholder="e.g. 65" value="65" required>
                     </div>
                     <div class="form-group">
                       <label for="ph">pH Value</label>
-                      <input type="number" step="0.1" id="ph" required>
+                      <input type="number" step="0.1" id="ph" placeholder="e.g. 6.5" value="6.5" required>
                     </div>
                     <div class="form-group full-width">
                       <label for="rainfall">Rainfall (mm)</label>
-                      <input type="number" id="rainfall" required>
+                      <input type="number" id="rainfall" placeholder="e.g. 1200" value="1200" required>
                     </div>
                   </div>
                   <button type="submit" class="action-btn-green mt-4 w-100">Get Recommendation <i class="fas fa-circle-check"></i></button>
@@ -458,12 +478,11 @@
                 <form id="fertilizer-form" class="soil-form">
                   <div class="form-group">
                     <label for="fert-crop">Target Crop</label>
-                    <select id="fert-crop" required>
-                      <option value="" disabled selected>Select Target Crop</option>
+                    <select id="fert-crop">
                       <option value="Barley">Barley (जौ)</option>
                       <option value="Cotton">Cotton (कपास)</option>
                       <option value="Ground Nuts">Ground Nuts (मूंगफली)</option>
-                      <option value="Maize">Maize (मक्का)</option>
+                      <option value="Maize" selected>Maize (मक्का)</option>
                       <option value="Millets">Millets (बाजरा)</option>
                       <option value="Oil seeds">Oil seeds (तिलहन)</option>
                       <option value="Paddy">Paddy (धान)</option>
@@ -475,11 +494,10 @@
                   </div>
                   <div class="form-group">
                     <label for="fert-soil">Soil Type</label>
-                    <select id="fert-soil" required>
-                      <option value="" disabled selected>Select Soil Type</option>
+                    <select id="fert-soil">
                       <option value="Black">Black</option>
                       <option value="Clayey">Clayey</option>
-                      <option value="Loamy">Loamy</option>
+                      <option value="Loamy" selected>Loamy</option>
                       <option value="Red">Red</option>
                       <option value="Sandy">Sandy</option>
                     </select>
@@ -487,27 +505,27 @@
                   <div class="form-grid">
                     <div class="form-group">
                       <label for="fert-n">Nitrogen (N)</label>
-                      <input type="number" id="fert-n" required>
+                      <input type="number" id="fert-n" value="50" required>
                     </div>
                     <div class="form-group">
                       <label for="fert-p">Phosphorus (P)</label>
-                      <input type="number" id="fert-p" required>
+                      <input type="number" id="fert-p" value="35" required>
                     </div>
                     <div class="form-group">
                       <label for="fert-k">Potassium (K)</label>
-                      <input type="number" id="fert-k" required>
+                      <input type="number" id="fert-k" value="30" required>
                     </div>
                     <div class="form-group">
                       <label for="fert-temperature">Temperature (°C)</label>
-                      <input type="number" id="fert-temperature" required>
+                      <input type="number" id="fert-temperature" placeholder="e.g. 28" value="28" required>
                     </div>
                     <div class="form-group">
                       <label for="fert-humidity">Humidity (%)</label>
-                      <input type="number" id="fert-humidity" required>
+                      <input type="number" id="fert-humidity" placeholder="e.g. 60" value="60" required>
                     </div>
                     <div class="form-group">
                       <label for="fert-moisture">Soil Moisture (%)</label>
-                      <input type="number" id="fert-moisture" required>
+                      <input type="number" id="fert-moisture" placeholder="e.g. 40" value="40" required>
                     </div>
                   </div>
                   <button type="submit" class="action-btn-green mt-4 w-100">Calculate Fertilizer Needs <i class="fas fa-flask"></i></button>
@@ -516,16 +534,16 @@
 
               <!-- Recommendation Result -->
               <div class="dashboard-card">
-                <div class="empty-results-state" id="fert-empty-state">
+                <div class="empty-results-state" id="fert-empty-state" style="display:none;">
                   <i class="fas fa-flask empty-icon"></i>
                   <h4>Calculate Nutrients</h4>
                   <p>Submit soil nutrients and crop target to see fertilizer requirements.</p>
                 </div>
-                <div class="fertilizer-result" id="fert-result-card" style="display:none;">
+                <div class="fertilizer-result" id="fert-result-card">
                   <div class="rec-header">
                     <span class="recommendation-badge">Recommended Fertilizer</span>
-                    <h2 id="fert-rec-name">—</h2>
-                    <p class="rec-reason" id="fert-reason-val">—</p>
+                    <h2 id="fert-rec-name">Urea</h2>
+                    <p class="rec-reason" id="fert-reason-val">Urea provides essential nitrogen for maize growth, and alluvial soils are generally fertile and can readily utilize this nutrient.</p>
                   </div>
                   <div class="dosage-card">
                     <h4>Application Details</h4>
@@ -559,16 +577,9 @@
               <div class="dashboard-card">
                 <h3>Check Forecast For Your Location</h3>
                 <form id="weather-form" class="weather-search-form">
-                  <input type="text" id="weather-city-input" required>
+                  <input type="text" id="weather-city-input" placeholder="e.g. Delhi, Pune, Nashik" value="Delhi" required>
                   <button type="submit" class="action-btn-green"><i class="fas fa-magnifying-glass-location"></i> Get Forecast</button>
                 </form>
-              </div>
-
-              <!-- Empty State -->
-              <div class="dashboard-card empty-results-state" id="weather-empty-state">
-                <i class="fas fa-cloud-sun-rain empty-icon"></i>
-                <h4>No Forecast Loaded</h4>
-                <p>Enter a city or district above to see the 5-day forecast and AI agricultural advice.</p>
               </div>
 
               <!-- Loading State -->
@@ -616,7 +627,7 @@
               <div class="dashboard-card">
                 <h3>Check Mandi Prices For Your Crop</h3>
                 <form id="market-form" class="weather-search-form">
-                  <input type="text" id="market-crop-input" required>
+                  <input type="text" id="market-crop-input" placeholder="e.g. Wheat, Onion, Tomato" value="Wheat" required>
                   <button type="submit" class="action-btn-green"><i class="fas fa-chart-simple"></i> Check Market Prices</button>
                 </form>
               </div>
@@ -694,10 +705,32 @@
                       <p>Hello! I am your AI Farming Assistant. How can I help you today?</p>
                     </div>
                   </div>
+                  <!-- Bubble user -->
+                  <div class="chat-bubble user">
+                    <div class="bubble-content">
+                      <p>My tomato leaves are turning yellow. What should I do?</p>
+                    </div>
+                  </div>
+                  <!-- Bubble bot -->
+                  <div class="chat-bubble bot">
+                    <div class="bubble-content">
+                      <p>Yellow leaves in tomato can be due to nitrogen deficiency or overwatering. Ensure proper drainage and use balanced fertilizer. Would you like fertilizer recommendations?</p>
+                    </div>
+                  </div>
+                  <div class="chat-bubble user">
+                    <div class="bubble-content">
+                      <p>Which crop is best to grow in July?</p>
+                    </div>
+                  </div>
+                  <div class="chat-bubble bot">
+                    <div class="bubble-content">
+                      <p>In July, you can grow crops like Okra, Brinjal, Cucumber, Green beans and Maize depending on your soil and region.</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="chat-input-area">
-                  <input type="text" id="chat-input">
+                  <input type="text" id="chat-input" placeholder="Type your message...">
                   <button class="action-btn-green" id="chat-send-btn">Send <i class="fas fa-paper-plane"></i></button>
                 </div>
               </div>
@@ -730,9 +763,8 @@
                 <form id="yield-form" class="soil-form">
                   <div class="form-group">
                     <label for="yield-crop">Crop</label>
-                    <select id="yield-crop" required>
-                      <option value="" disabled selected>Select Crop</option>
-                      <option value="Wheat">Wheat (गेहूं)</option>
+                    <select id="yield-crop">
+                      <option value="Wheat" selected>Wheat (गेहूं)</option>
                       <option value="Rice">Rice (धान)</option>
                       <option value="Maize">Maize (मक्का)</option>
                       <option value="Sugarcane">Sugarcane (गन्ना)</option>
@@ -740,24 +772,23 @@
                   </div>
                   <div class="form-group">
                     <label for="yield-area">Area (in acres)</label>
-                    <input type="number" id="yield-area" required>
+                    <input type="number" id="yield-area" value="5" required>
                   </div>
                   <div class="form-group">
                     <label for="yield-fertilizer">Fertilizer Used (kg)</label>
-                    <input type="number" id="yield-fertilizer" required>
+                    <input type="number" id="yield-fertilizer" value="120" required>
                   </div>
                   <div class="form-group">
                     <label for="yield-soil">Soil Quality</label>
-                    <select id="yield-soil" required>
-                      <option value="" disabled selected>Select Soil Quality</option>
-                      <option value="Good">Good</option>
+                    <select id="yield-soil">
+                      <option value="Good" selected>Good</option>
                       <option value="Medium">Medium</option>
                       <option value="Poor">Poor</option>
                     </select>
                   </div>
                   <div class="form-group">
                     <label for="yield-rainfall">Rainfall (mm)</label>
-                    <input type="number" id="yield-rainfall" required>
+                    <input type="number" id="yield-rainfall" value="450" required>
                   </div>
                   <button type="submit" class="action-btn-green mt-4 w-100">Predict Yield <i class="fas fa-chart-line"></i></button>
                 </form>
@@ -765,34 +796,49 @@
 
               <!-- Prediction Output -->
               <div class="dashboard-card">
-                <div class="empty-results-state" id="yield-empty-state">
-                  <i class="fas fa-chart-line empty-icon"></i>
-                  <h4>No Prediction Yet</h4>
-                  <p>Enter crop and land parameters on the left and click predict to see estimated harvest.</p>
-                </div>
                 <div class="empty-results-state" id="yield-error-state" style="display:none;">
                   <i class="fas fa-triangle-exclamation empty-icon"></i>
                   <h4>Couldn't Predict Yield</h4>
                   <p id="yield-error-message">Please check your inputs and try again.</p>
                 </div>
-                <div class="yield-prediction-result" id="yield-result-card" style="display:none;">
+                <div class="yield-prediction-result" id="yield-result-card">
                   <div class="predicted-main">
                     <span class="recommendation-badge">Predicted Yield</span>
-                    <h2 id="predicted-yield-val">—</h2>
+                    <h2 id="predicted-yield-val">22.4 Quintals / acre</h2>
                   </div>
                   <div class="predicted-sub-metrics">
                     <div class="predicted-metric-box">
                       <span>Total Estimated Yield</span>
-                      <strong id="predicted-total-val">—</strong>
+                      <strong id="predicted-total-val">112 Quintals</strong>
                     </div>
                     <div class="predicted-metric-box">
                       <span>Model Accuracy</span>
-                      <strong id="predicted-accuracy-val">—</strong>
+                      <strong>92.6%</strong>
                     </div>
                   </div>
                   <div class="yield-trend">
                     <h4>Historical Trend & Prediction</h4>
-                    <div class="trend-chart-mock" id="yield-trend-container">
+                    <div class="trend-chart-mock">
+                      <svg viewBox="0 0 200 80" class="svg-trend-chart">
+                        <!-- Grid lines -->
+                        <line x1="10" y1="10" x2="190" y2="10" stroke="#f0f0f0" stroke-width="1" />
+                        <line x1="10" y1="40" x2="190" y2="40" stroke="#f0f0f0" stroke-width="1" />
+                        <line x1="10" y1="70" x2="190" y2="70" stroke="#f0f0f0" stroke-width="1" />
+                        <!-- Chart Line -->
+                        <path d="M10,65 L50,55 L90,48 L130,42 L170,25" fill="none" stroke="#28a745" stroke-width="3" />
+                        <!-- Chart Dots -->
+                        <circle cx="10" cy="65" r="4" fill="#28a745" />
+                        <circle cx="50" cy="55" r="4" fill="#28a745" />
+                        <circle cx="90" cy="48" r="4" fill="#28a745" />
+                        <circle cx="130" cy="42" r="4" fill="#28a745" />
+                        <circle cx="170" cy="25" r="4" fill="#ffc107" class="pulse-chart-dot" />
+                        <!-- Labels -->
+                        <text x="10" y="78" font-size="8" fill="#888">2021</text>
+                        <text x="50" y="78" font-size="8" fill="#888">2022</text>
+                        <text x="90" y="78" font-size="8" fill="#888">2023</text>
+                        <text x="130" y="78" font-size="8" fill="#888">2024</text>
+                        <text x="170" y="78" font-size="8" fill="#ffc107" font-weight="bold">2025(P)</text>
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -817,6 +863,24 @@
                     </tr>
                   </thead>
                   <tbody id="history-table-body">
+                    <tr>
+                      <td>17 May 2025, 02:30 PM</td>
+                      <td><span class="activity-type disease"><i class="fas fa-virus-slash"></i> Disease Detection</span></td>
+                      <td>Tomato Leaf Image (Upload)</td>
+                      <td>Early Blight (94.21% Confidence)</td>
+                    </tr>
+                    <tr>
+                      <td>16 May 2025, 11:15 AM</td>
+                      <td><span class="activity-type crop"><i class="fas fa-seedling"></i> Crop Rec.</span></td>
+                      <td>N:60, P:40, K:40, pH:6.5, Temp:28°C</td>
+                      <td>Recommended Crop: Maize (92% Suitability)</td>
+                    </tr>
+                    <tr>
+                      <td>15 May 2025, 09:40 AM</td>
+                      <td><span class="activity-type fertilizer"><i class="fas fa-flask"></i> Fertilizer Rec.</span></td>
+                      <td>Maize, Alluvial Soil, N:50, P:35, K:30</td>
+                      <td>Urea (80kg), DAP (50kg), MOP (30kg)</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -1123,22 +1187,22 @@
         <form id="scheme-apply-form" onsubmit="submitSchemeApplication(event)">
           <div class="form-group">
             <label for="applicant-name">Applicant Name</label>
-            <input type="text" id="applicant-name" required>
+            <input type="text" id="applicant-name" value="Ram Kumar" required>
           </div>
           <div class="form-group">
             <label for="applicant-aadhaar">Aadhaar Card Number</label>
-            <input type="text" id="applicant-aadhaar" required>
+            <input type="text" id="applicant-aadhaar" value="XXXX-XXXX-8921" required>
           </div>
           <div class="form-group">
             <label for="applicant-land">Land Holding (in Hectares)</label>
-            <input type="number" step="0.1" id="applicant-land" required>
+            <input type="number" step="0.1" id="applicant-land" value="2.2" required>
           </div>
           <div class="form-group">
             <label for="applicant-bank">Bank Account Number (linked to Aadhaar)</label>
-            <input type="text" id="applicant-bank" required>
+            <input type="text" id="applicant-bank" value="SBI-XXXXXX324" required>
           </div>
           <div class="form-group checkbox-group">
-            <input type="checkbox" id="agree-terms" required>
+            <input type="checkbox" id="agree-terms" required checked>
             <label for="agree-terms">I self-declare that the information given above is true and correct.</label>
           </div>
           <button type="submit" class="action-btn-green w-100 mt-3">Submit Application <i class="fas fa-paper-plane"></i></button>
