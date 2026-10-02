@@ -15,7 +15,7 @@ const API = {
   disease: 'https://krishisanchar-disease-c3wq.onrender.com',
   // Placeholder — update this once auth_service.py is deployed on Render,
   // same as every other service above.
-  auth: 'https://krishisanchar-auth-XXXX.onrender.com',
+  auth: 'https://krishisanchar-auth-c3wq.onrender.com',
 };
 
 // Local fallback icons — the crop API doesn't return an image, so we map
