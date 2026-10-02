@@ -1,7 +1,7 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-
+requests
 sqlalchemy>=2.0
 psycopg2-binary
 
