@@ -1,9 +1,19 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-requests
-sqlalchemy>=2.0
+sqlalchemy
+
 psycopg2-binary
 
 bcrypt
 PyJWT
+pandas
+numpy
+scikit-learn
+requests
+urllib3
+langchain-google-genai
+langchain-core
+Pillow
+ai-edge-litert
+python-multipart
