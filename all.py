@@ -28,6 +28,7 @@ SERVICES = [
     {"folder": ".",                    "target": "weather_service:app",     "port": 8004},
     {"folder": ".",                    "target": "ai_assistant:app",        "port": 8005},
     {"folder": "plant disease",        "target": "plant_disease_detection:app", "port": 8006},
+    {"folder":"auth",                  "target":"auth_service:app","port":8007}
 ]
 
 processes = []

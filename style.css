@@ -1171,6 +1171,11 @@ td {
 .activity-type.disease { color: #e53e3e; }
 .activity-type.crop { color: #38a169; }
 .activity-type.fertilizer { color: #3182ce; }
+.activity-type.weather { color: #d69e2e; }
+.activity-type.market { color: #805ad5; }
+.activity-type.yield { color: #2b6cb0; }
+.activity-type.assistant { color: #319795; }
+.activity-type.scheme { color: #dd6b20; }
 
 .view-history-link {
   font-size: 13px;

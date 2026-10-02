@@ -553,11 +553,15 @@ def me(
 _VALID_ACTIVITY_TYPES = {
     "Disease Detection",
     "Crop Recommendation",
+    "Crop Rec.",
     "Fertilizer Recommendation",
+    "Fertilizer Rec.",
     "Weather Check",
+    "Weather Forecast",
     "Market Analysis",
     "Yield Prediction",
     "AI Assistant",
+    "Scheme Registration",
 }
 
 
