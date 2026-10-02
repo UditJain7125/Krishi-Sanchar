@@ -13,6 +13,9 @@ const API = {
   weather: 'https://krishisanchar-weather-c3wq.onrender.com',
   assistant: 'https://krishisanchar-assistant-c3wq.onrender.com',
   disease: 'https://krishisanchar-disease-c3wq.onrender.com',
+  // Placeholder — update this once auth_service.py is deployed on Render,
+  // same as every other service above.
+  auth: 'https://krishisanchar-auth-XXXX.onrender.com',
 };
 
 // Local fallback icons — the crop API doesn't return an image, so we map
@@ -100,28 +103,201 @@ function initNavigation() {
   });
 }
 
-// Enter Dashboard View
-function enterDashboard() {
-  const landingPage = document.getElementById('landing-page');
-  const dashboardPage = document.getElementById('dashboard-page');
-  
-  landingPage.classList.remove('active');
-  dashboardPage.classList.add('active');
-  
-  // Set default tab (Overview)
-  switchDashboardTab('dashboard-overview');
+// ==========================================
+// VIEW SWITCHING (dashboard / login / signup / info pages)
+// ==========================================
+const ALL_VIEW_IDS = [
+  'dashboard-page', 'login-page', 'signup-page',
+  'about-page', 'contact-page', 'privacy-page', 'terms-page'
+];
+
+function showView(targetId) {
+  ALL_VIEW_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === targetId);
+  });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Exit Dashboard View (Logout)
-function exitDashboard() {
-  const landingPage = document.getElementById('landing-page');
-  const dashboardPage = document.getElementById('dashboard-page');
-  
-  dashboardPage.classList.remove('active');
-  landingPage.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function showLoginPage() {
+  document.getElementById('login-error').style.display = 'none';
+  showView('login-page');
 }
+
+function showSignupPage() {
+  document.getElementById('signup-error').style.display = 'none';
+  showView('signup-page');
+}
+
+function showInfoPage(pageId) {
+  showView(pageId);
+}
+
+// Enter Dashboard View
+function enterDashboard() {
+  showView('dashboard-page');
+  switchDashboardTab('dashboard-overview');
+  loadProfileData();
+}
+
+// Logout: clear the stored session and return to the login page.
+function logout() {
+  clearAuthToken();
+  showLoginPage();
+}
+
+// ==========================================
+// AUTH: token storage
+// ==========================================
+const AUTH_TOKEN_KEY = 'krishisanchar_token';
+
+function getAuthToken() {
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+function setAuthToken(token) {
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
+}
+
+function clearAuthToken() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+}
+
+// ==========================================
+// AUTH: login
+// ==========================================
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+
+  const identifier = document.getElementById('login-identifier').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorBox = document.getElementById('login-error');
+  const submitBtn = document.getElementById('login-submit-btn');
+
+  errorBox.style.display = 'none';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Logging in...';
+
+  try {
+    const res = await fetch(`${API.auth}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail?.error || data.detail || 'Login failed. Check your credentials.');
+    }
+
+    setAuthToken(data.access_token);
+    enterDashboard();
+
+  } catch (err) {
+    errorBox.textContent = err.message || 'Something went wrong. Please try again.';
+    errorBox.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log In';
+  }
+}
+
+// ==========================================
+// AUTH: signup
+// ==========================================
+async function handleSignupSubmit(event) {
+  event.preventDefault();
+
+  const password = document.getElementById('signup-password').value;
+  const confirmPassword = document.getElementById('signup-confirm-password').value;
+  const errorBox = document.getElementById('signup-error');
+  const submitBtn = document.getElementById('signup-submit-btn');
+
+  errorBox.style.display = 'none';
+
+  if (password !== confirmPassword) {
+    errorBox.textContent = 'Passwords do not match.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  const payload = {
+    full_name: document.getElementById('signup-name').value.trim(),
+    identifier: document.getElementById('signup-identifier').value.trim(),
+    password,
+    location: document.getElementById('signup-location').value.trim(),
+    land_area_acres: parseFloat(document.getElementById('signup-land-area').value) || null,
+    primary_crop: document.getElementById('signup-primary-crop').value || null,
+    soil_type: document.getElementById('signup-soil-type').value || null,
+    irrigation_source: document.getElementById('signup-irrigation').value || null,
+  };
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating account...';
+
+  try {
+    const res = await fetch(`${API.auth}/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail?.error || data.detail || 'Signup failed. Please try again.');
+    }
+
+    setAuthToken(data.access_token);
+    enterDashboard();
+
+  } catch (err) {
+    errorBox.textContent = err.message || 'Something went wrong. Please try again.';
+    errorBox.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create Account';
+  }
+}
+
+// ==========================================
+// AUTH: load real profile data into "My Profile" panel
+// ==========================================
+async function loadProfileData() {
+  const token = getAuthToken();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API.auth}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      // Token expired/invalid — send the user back to login.
+      clearAuthToken();
+      showLoginPage();
+      return;
+    }
+
+    const user = await res.json();
+
+    document.getElementById('profile-name').textContent = user.full_name || '—';
+    document.getElementById('profile-since').textContent =
+      user.created_at ? ` since ${new Date(user.created_at).getFullYear()}` : '';
+    document.getElementById('profile-farmer-id').textContent = user.farmer_id || '—';
+    document.getElementById('profile-location').textContent = user.location || '—';
+    document.getElementById('profile-land-area').textContent =
+      user.land_area_acres ? `${user.land_area_acres} Acres` : '—';
+    document.getElementById('profile-soil-type').textContent = user.soil_type || '—';
+    document.getElementById('profile-primary-crop').textContent = user.primary_crop || '—';
+    document.getElementById('profile-irrigation').textContent = user.irrigation_source || '—';
+
+  } catch (err) {
+    console.error('Failed to load profile:', err);
+  }
+}
+
 
 // Switch tabs dynamically from links inside cards
 function switchDashboardTab(targetTabId) {

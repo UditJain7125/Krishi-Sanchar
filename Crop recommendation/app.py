@@ -19,7 +19,7 @@ app = FastAPI()
 # to call this API from the browser.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://uditjain7125.github.io"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

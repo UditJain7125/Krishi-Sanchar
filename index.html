@@ -22,122 +22,6 @@
 </head>
 <body>
 
-  <!-- ========================================== -->
-  <!--             LANDING PAGE (Design 1)        -->
-  <!-- ========================================== -->
-  <div id="landing-page" class="view-section active">
-    <!-- Navbar -->
-    <header class="landing-header">
-      <nav class="navbar">
-        <div class="logo">
-          <span class="logo-krishi">KriShi</span>
-          <span class="logo-sanchar">san<span class="logo-white">char</span></span>
-        </div>
-        <div class="search-bar-container">
-          <div class="search-bar">
-            <input type="text" placeholder="Search schemes, crops, weather...">
-            <button class="search-btn"><i class="fas fa-search"></i></button>
-          </div>
-        </div>
-        <ul class="nav-links">
-          <li><a href="javascript:void(0)" class="nav-icon-link"><i class="fas fa-home"></i></a></li>
-          <!-- <li><a href="javascript:void(0)" class="nav-icon-link"><i class="fas fa-globe"></i></a></li> -->
-          <li><a href="#about">about</a></li>
-          <li><a href="#contact">contact</a></li>
-        </ul>
-        <div class="nav-weather-widget" onclick="navigateToDashboard('weather-forecast')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1163/1163763.png" alt="Weather Summary" class="weather-icon-mini">
-          <span class="weather-temp-mini">32°C</span>
-        </div>
-      </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-container">
-        <div class="hero-content">
-          <h1 class="hero-title">The Feeder Of<br>The Nation</h1>
-          <p class="hero-subtitle">The Producer ,<br><span class="highlight">The Protector</span></p>
-          <div class="hero-actions">
-            <a href="tel:18001234567" class="phone-link">
-              <span class="phone-icon-circle"><i class="fas fa-phone-alt"></i></span>
-              <span class="phone-text">Toll Free Support</span>
-            </a>
-          </div>
-        </div>
-        <div class="hero-image-container">
-          <div class="hero-circle-backdrop"></div>
-          <div class="hero-circle">
-            <img src="indian-farmer-holding-green-crops_1308360-47.avif" alt="Indian Farmer Illustration" class="farmer-img">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Gov Scheme Section -->
-    <section class="scheme-section">
-      <div class="section-decor"></div>
-      <div class="container">
-        <h2 class="section-title">Gov. Scheme</h2>
-        <div class="scheme-grid">
-          
-          <!-- Card 1 -->
-          <div class="scheme-card fade-in-up">
-            <div class="card-icon-header">
-              <img src="https://cdn-icons-png.flaticon.com/512/862/862856.png" alt="Crop Icon" class="scheme-card-icon">
-              <h3>PM-KISAN</h3>
-            </div>
-            <p class="scheme-desc">₹6,000 yearly income support for farmers paid in three equal installments.</p>
-            <ul class="scheme-features">
-              <li><i class="fas fa-check-circle"></i> Eligibility: Small & Marginal Farmers</li>
-              <li><i class="fas fa-check-circle"></i> Benefits: Direct Benefit Transfer</li>
-              <li><i class="fas fa-check-circle"></i> Required Documents: Aadhaar, Land Records</li>
-            </ul>
-            <a href="javascript:void(0)" class="scheme-apply-btn" onclick="openSchemeModal('PM-KISAN')">Apply Online <i class="fas fa-arrow-right"></i></a>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="scheme-card fade-in-up" style="animation-delay: 0.1s;">
-            <div class="card-icon-header">
-              <i class="fas fa-shield-halved scheme-card-icon-fa"></i>
-              <h3>PMFBY</h3>
-            </div>
-            <p class="scheme-desc">Pradhan Mantri Fasal Bima Yojana. Protect your crops against natural calamities.</p>
-            <ul class="scheme-features-grid">
-              <li><span class="danger-tag"><i class="fas fa-tint"></i> Flood</span></li>
-              <li><span class="danger-tag"><i class="fas fa-sun"></i> Drought</span></li>
-              <li><span class="danger-tag"><i class="fas fa-wind"></i> Cyclone</span></li>
-              <li><span class="danger-tag"><i class="fas fa-bug"></i> Pest attacks</span></li>
-            </ul>
-            <a href="javascript:void(0)" class="scheme-apply-btn" onclick="openSchemeModal('PMFBY')">Apply Online <i class="fas fa-arrow-right"></i></a>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="scheme-card fade-in-up" style="animation-delay: 0.2s;">
-            <div class="card-icon-header">
-              <i class="fas fa-seedling scheme-card-icon-fa"></i>
-              <h3>PMKSY</h3>
-            </div>
-            <p class="scheme-desc">Pradhan Mantri Krishi Sinchayee Yojana. Har Khet Ko Pani & More Crop Per Drop.</p>
-            <ul class="scheme-features">
-              <li><i class="fas fa-check-circle"></i> Eligibility: All agricultural landowners</li>
-              <li><i class="fas fa-check-circle"></i> Benefits: Up to 55% subsidy on Drip/Sprinkler</li>
-              <li><i class="fas fa-check-circle"></i> Focus: Water conservation & efficient use</li>
-            </ul>
-            <a href="javascript:void(0)" class="scheme-apply-btn" onclick="openSchemeModal('PMKSY')">Apply Online <i class="fas fa-arrow-right"></i></a>
-          </div>
-
-        </div>
-
-        <div class="explore-more-container">
-          <button class="explore-btn" onclick="enterDashboard()">
-            Explore more <span class="arrow-circle"><i class="fas fa-arrow-right"></i></span>
-          </button>
-        </div>
-      </div>
-    </section>
-  </div>
-
 
   <!-- ========================================== -->
   <!--             DASHBOARD (Design 2)           -->
@@ -189,7 +73,7 @@
             <li class="nav-item" data-target="my-profile">
               <a href="javascript:void(0)"><i class="fas fa-user-circle"></i> <span>My Profile</span></a>
             </li>
-            <li class="nav-item logout-item" onclick="exitDashboard()">
+            <li class="nav-item logout-item" onclick="logout()">
               <a href="javascript:void(0)"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
             </li>
           </ul>
@@ -1011,10 +895,10 @@
               <!-- Farmer Info Card -->
               <div class="dashboard-card text-center">
                 <div class="profile-avatar-large">
-                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" alt="Ram Kumar Image" loading="lazy">
+                  <img id="profile-avatar-img" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" alt="Profile" loading="lazy">
                 </div>
-                <h2>Ram Kumar</h2>
-                <p class="text-muted">Registered Farmer since 2022</p>
+                <h2 id="profile-name">—</h2>
+                <p class="text-muted">Registered Farmer<span id="profile-since"></span></p>
                 <div class="badge-row mt-3">
                   <span class="badge badge-gold"><i class="fas fa-award"></i> Verified Farmer</span>
                   <span class="badge badge-green"><i class="fas fa-circle-check"></i> Aadhaar Linked</span>
@@ -1027,27 +911,27 @@
                 <div class="profile-details-grid">
                   <div class="profile-detail-item">
                     <span class="detail-label">Farmer ID</span>
-                    <strong class="detail-value">KS-98745-DEL</strong>
+                    <strong class="detail-value" id="profile-farmer-id">—</strong>
                   </div>
                   <div class="profile-detail-item">
                     <span class="detail-label">Location</span>
-                    <strong class="detail-value">Najafgarh, New Delhi, India</strong>
+                    <strong class="detail-value" id="profile-location">—</strong>
                   </div>
                   <div class="profile-detail-item">
                     <span class="detail-label">Total Land Area</span>
-                    <strong class="detail-value">5.5 Acres</strong>
+                    <strong class="detail-value" id="profile-land-area">—</strong>
                   </div>
                   <div class="profile-detail-item">
                     <span class="detail-label">Soil Type</span>
-                    <strong class="detail-value">Clay Loam / Alluvial</strong>
+                    <strong class="detail-value" id="profile-soil-type">—</strong>
                   </div>
                   <div class="profile-detail-item">
                     <span class="detail-label">Primary Crop</span>
-                    <strong class="detail-value">Wheat / Maize</strong>
+                    <strong class="detail-value" id="profile-primary-crop">—</strong>
                   </div>
                   <div class="profile-detail-item">
                     <span class="detail-label">Irrigation Source</span>
-                    <strong class="detail-value">Tubewell & Drip System</strong>
+                    <strong class="detail-value" id="profile-irrigation">—</strong>
                   </div>
                 </div>
               </div>
@@ -1074,7 +958,225 @@
     </div>
   </div>
 
-  <!-- Apply Scheme Modal -->
+  <!-- ========================================== -->
+  <!--                  LOGIN PAGE                 -->
+  <!-- ========================================== -->
+  <div id="login-page" class="view-section auth-page active">
+    <div class="auth-card">
+      <h1 class="auth-logo">KrishiSanchar</h1>
+      <p class="auth-subtitle">Welcome back! Please login to your account.</p>
+      <p id="login-error" class="auth-error" style="display:none;"></p>
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group full-width">
+          <label for="login-identifier">Email or Phone Number</label>
+          <input type="text" id="login-identifier" placeholder="Email or Phone" required>
+        </div>
+        <div class="form-group full-width">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="Password" required>
+        </div>
+        <div class="auth-row">
+          <label class="checkbox-inline"><input type="checkbox" id="login-remember"> Remember me</label>
+          <a href="javascript:void(0)" class="auth-link">Forgot Password?</a>
+        </div>
+        <button type="submit" class="explore-btn w-100" id="login-submit-btn">Log In</button>
+      </form>
+      <p class="auth-switch">Don't have an account? <a href="javascript:void(0)" onclick="showSignupPage()">Sign up here</a></p>
+      <p class="auth-footer-links">
+        <a href="javascript:void(0)" onclick="showInfoPage('about-page')">About</a>
+        <span>·</span>
+        <a href="javascript:void(0)" onclick="showInfoPage('contact-page')">Contact</a>
+        <span>·</span>
+        <a href="javascript:void(0)" onclick="showInfoPage('privacy-page')">Privacy</a>
+        <span>·</span>
+        <a href="javascript:void(0)" onclick="showInfoPage('terms-page')">Terms</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!--                  SIGNUP PAGE                -->
+  <!-- ========================================== -->
+  <div id="signup-page" class="view-section auth-page">
+    <div class="auth-card auth-card--wide">
+      <h1 class="auth-logo">KrishiSanchar</h1>
+      <p class="auth-subtitle">Create your account and set up your farm profile.</p>
+      <p id="signup-error" class="auth-error" style="display:none;"></p>
+      <form id="signup-form" onsubmit="handleSignupSubmit(event)">
+        <h4 class="auth-section-title">Account Details</h4>
+        <div class="profile-details-grid">
+          <div class="form-group">
+            <label for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" placeholder="Enter your full name" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-identifier">Email or Phone Number</label>
+            <input type="text" id="signup-identifier" placeholder="Email or Phone" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="Create a password" minlength="8" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm-password">Confirm Password</label>
+            <input type="password" id="signup-confirm-password" placeholder="Confirm password" minlength="8" required>
+          </div>
+        </div>
+
+        <h4 class="auth-section-title">Farm Details</h4>
+        <div class="profile-details-grid">
+          <div class="form-group">
+            <label for="signup-location">Location (State/District)</label>
+            <input type="text" id="signup-location" placeholder="e.g., Delhi">
+          </div>
+          <div class="form-group">
+            <label for="signup-land-area">Land Area (Acres)</label>
+            <input type="number" step="0.1" id="signup-land-area" placeholder="e.g., 5.5">
+          </div>
+          <div class="form-group">
+            <label for="signup-primary-crop">Primary Crop</label>
+            <select id="signup-primary-crop">
+              <option value="">Select a crop</option>
+              <option value="Barley">Barley</option>
+              <option value="Cotton">Cotton</option>
+              <option value="Ground Nuts">Ground Nuts</option>
+              <option value="Maize">Maize</option>
+              <option value="Millets">Millets</option>
+              <option value="Oil seeds">Oil seeds</option>
+              <option value="Paddy">Paddy</option>
+              <option value="Pulses">Pulses</option>
+              <option value="Sugarcane">Sugarcane</option>
+              <option value="Tobacco">Tobacco</option>
+              <option value="Wheat">Wheat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="signup-soil-type">Soil Type</label>
+            <select id="signup-soil-type">
+              <option value="">Select soil type</option>
+              <option value="Black">Black</option>
+              <option value="Clayey">Clayey</option>
+              <option value="Loamy">Loamy</option>
+              <option value="Red">Red</option>
+              <option value="Sandy">Sandy</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="signup-irrigation">Irrigation Source</label>
+            <select id="signup-irrigation">
+              <option value="">Select irrigation source</option>
+              <option value="Rainfed">Rainfed</option>
+              <option value="Canal">Canal</option>
+              <option value="Tubewell">Tubewell</option>
+              <option value="Drip">Drip</option>
+              <option value="Sprinkler">Sprinkler</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="signup-agree-terms" required>
+          <label for="signup-agree-terms">I agree to the <a href="javascript:void(0)" onclick="showInfoPage('terms-page')">Terms &amp; Conditions</a></label>
+        </div>
+        <button type="submit" class="explore-btn w-100" id="signup-submit-btn">Create Account</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="javascript:void(0)" onclick="showLoginPage()">Log in here</a></p>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!--                  INFO PAGES                 -->
+  <!-- ========================================== -->
+  <div id="about-page" class="view-section info-page">
+    <div class="info-page-card">
+      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <h1>About KrishiSanchar</h1>
+      <p>KrishiSanchar ("Farmer's Message") is a smart agriculture platform built to put modern, data-driven farming tools directly into the hands of farmers. We combine AI-based crop disease detection, soil-aware crop and fertilizer recommendations, hyperlocal weather forecasting, and real-time market intelligence into one easy-to-use dashboard.</p>
+      <p>Our mission is simple: help every farmer make better decisions, reduce crop loss, and improve yield and income through accessible technology.</p>
+      <div class="profile-details-grid mt-3">
+        <div class="dashboard-card">
+          <h4>Our Mission</h4>
+          <p class="text-muted">Empower every farmer with AI-driven insights for healthier crops and better yields.</p>
+        </div>
+        <div class="dashboard-card">
+          <h4>Our Vision</h4>
+          <p class="text-muted">A future where no farmer loses a harvest to information they didn't have.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="contact-page" class="view-section info-page">
+    <div class="info-page-card">
+      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <h1>Contact Us</h1>
+      <div class="dashboard-card">
+        <h3>Get in Touch</h3>
+        <p class="text-muted">Have a question, feedback, or need help with the platform? Reach out to our support team — we typically respond within 24-48 hours.</p>
+        <div class="profile-details-grid mt-3">
+          <div class="profile-detail-item">
+            <span class="detail-label"><i class="fas fa-phone"></i> Helpline</span>
+            <strong class="detail-value">1800-123-4567 (Toll-Free)</strong>
+          </div>
+          <div class="profile-detail-item">
+            <span class="detail-label"><i class="fas fa-envelope"></i> Email</span>
+            <strong class="detail-value">support@krishisanchar.in</strong>
+          </div>
+          <div class="profile-detail-item">
+            <span class="detail-label"><i class="fas fa-clock"></i> Support Hours</span>
+            <strong class="detail-value">Mon - Sat, 9:00 AM - 6:00 PM IST</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="privacy-page" class="view-section info-page">
+    <div class="info-page-card">
+      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <h1>Privacy Policy</h1>
+      <p class="text-muted">Last updated: September 2026</p>
+      <p>KrishiSanchar ("we", "us", "our") is committed to protecting the privacy of farmers and other users of our platform. This policy explains what information we collect, how we use it, and the choices you have.</p>
+      <h3>1. Information We Collect</h3>
+      <ul>
+        <li>Account details you provide: name, phone number, email, and farm location.</li>
+        <li>Farm data you submit: soil parameters, crop history, and uploaded leaf images used for disease detection.</li>
+        <li>Usage data: pages visited, features used, and device/browser information to improve the platform.</li>
+        <li>Approximate location, when you request weather or market data for a specific area.</li>
+      </ul>
+      <h3>2. How We Use Your Information</h3>
+      <ul>
+        <li>To generate crop, fertilizer, and disease-detection recommendations personalized to your farm.</li>
+        <li>To show relevant weather forecasts, market prices, and government scheme information.</li>
+        <li>To maintain your activity history so you can track past recommendations.</li>
+      </ul>
+      <h3>3. Data Sharing</h3>
+      <p>We do not sell your personal data. We may share limited information with trusted service providers (such as weather and market-data APIs) strictly to deliver platform features, and with government bodies only where required to verify scheme eligibility or by law.</p>
+      <h3>4. Data Security</h3>
+      <p>We use industry-standard measures, including encrypted authentication (JWT) and secure password hashing, to protect your data. However, no online platform can guarantee absolute security.</p>
+      <h3>5. Your Rights</h3>
+      <p>You can access, update, or request deletion of your profile data at any time from "My Profile", or by contacting us at support@krishisanchar.in.</p>
+    </div>
+  </div>
+
+  <div id="terms-page" class="view-section info-page">
+    <div class="info-page-card">
+      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <h1>Terms &amp; Conditions</h1>
+      <p class="text-muted">Last updated: September 2026</p>
+      <p>By creating an account or using KrishiSanchar, you agree to the following terms. Please read them carefully.</p>
+      <h3>1. Use of the Platform</h3>
+      <p>KrishiSanchar is provided to help farmers make more informed agricultural decisions. You agree to use the platform only for lawful purposes and to provide accurate information about your farm and account.</p>
+      <h3>2. Nature of Recommendations</h3>
+      <p>Crop, fertilizer, disease-detection, and yield recommendations generated by KrishiSanchar are based on AI models and the data you provide. They are intended as decision-support guidance only and do not replace the advice of a qualified agronomist, soil-testing laboratory, or local agricultural officer.</p>
+      <h3>3. Account Responsibility</h3>
+      <p>You are responsible for maintaining the confidentiality of your login credentials and for all activity under your account.</p>
+      <h3>4. Intellectual Property</h3>
+      <p>All content, branding, and underlying technology on KrishiSanchar are the property of KrishiSanchar and may not be copied or reproduced without permission.</p>
+    </div>
+  </div>
+
+
   <div id="scheme-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">

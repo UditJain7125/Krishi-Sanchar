@@ -93,3 +93,18 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+
+  - type: web
+    name: krishisanchar-auth
+    runtime: python
+    plan: free
+    rootDir: auth
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn auth_service:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
