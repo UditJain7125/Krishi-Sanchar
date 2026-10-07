@@ -139,34 +139,36 @@
                   <i class="fas fa-cloud-sun icon"></i>
                 </div>
                 <div class="weather-main">
-                  <div class="temp-big">32°C</div>
-                  <div class="weather-desc">Partly Cloudy</div>
+                  <div class="temp-big" id="dash-weather-temp">—</div>
+                  <div class="weather-desc" id="dash-weather-desc">Loading…</div>
                 </div>
                 <div class="weather-metrics">
-                  <div><span>Humidity</span><strong>65%</strong></div>
-                  <div><span>Wind</span><strong>12 km/h</strong></div>
-                  <div><span>Rain</span><strong>0%</strong></div>
+                  <div><span>Humidity</span><strong id="dash-weather-humidity">—</strong></div>
+                  <div><span>Wind</span><strong id="dash-weather-wind">—</strong></div>
+                  <div><span>Rain</span><strong id="dash-weather-rain">—</strong></div>
                 </div>
                 <a href="javascript:void(0)" class="card-action-link" onclick="switchDashboardTab('weather-forecast')">View full forecast <i class="fas fa-arrow-right"></i></a>
               </div>
 
-              <!-- Card: Soil Status -->
-              <div class="overview-card soil-card">
+              <!-- Card: Government Schemes -->
+              <div class="overview-card schemes-card">
                 <div class="card-header-flex">
-                  <h4>Soil Status</h4>
-                  <i class="fas fa-seedling icon text-success"></i>
+                  <h4>Government Schemes</h4>
+                  <i class="fas fa-landmark icon text-success"></i>
                 </div>
-                <div class="soil-status-badge">
-                  <span class="status-indicator positive"></span>
-                  <div>
-                    <strong>Good</strong>
-                    <p>Suitable for farming</p>
+                <div class="schemes-list">
+                  <div class="scheme-item">
+                    <strong>PM-KISAN</strong>
+                    <p>₹6,000/year direct income support, paid in 3 installments.</p>
                   </div>
-                </div>
-                <div class="soil-metrics">
-                  <div><span>pH</span><strong>6.5</strong></div>
-                  <div><span>Moisture</span><strong>42%</strong></div>
-                  <div><span>Nutrients</span><strong>Good</strong></div>
+                  <div class="scheme-item">
+                    <strong>PMFBY</strong>
+                    <p>Crop insurance covering yield losses from calamities, pests and diseases.</p>
+                  </div>
+                  <div class="scheme-item">
+                    <strong>Kisan Credit Card (KCC)</strong>
+                    <p>Short-term credit for crop production at subsidised interest rates.</p>
+                  </div>
                 </div>
               </div>
 
@@ -192,8 +194,8 @@
                   <i class="fas fa-triangle-exclamation icon text-danger"></i>
                 </div>
                 <div class="alert-content">
-                  <div class="alert-number">2 Alerts</div>
-                  <p>in your area</p>
+                  <div class="alert-number" id="dash-disease-alert-count">0</div>
+                  <p>detected by you</p>
                 </div>
                 <button class="alert-action-btn" onclick="switchDashboardTab('disease-detection')">Check Now <i class="fas fa-arrow-right"></i></button>
               </div>
@@ -262,22 +264,8 @@
                         <th>Date</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr>
-                        <td><span class="activity-type disease"><i class="fas fa-virus-slash"></i> Disease Detection</span></td>
-                        <td>Tomato Leaf - Early Blight</td>
-                        <td>17 May 2025</td>
-                      </tr>
-                      <tr>
-                        <td><span class="activity-type crop"><i class="fas fa-seedling"></i> Crop Rec.</span></td>
-                        <td>Recommended Crop: Maize</td>
-                        <td>16 May 2025</td>
-                      </tr>
-                      <tr>
-                        <td><span class="activity-type fertilizer"><i class="fas fa-flask"></i> Fertilizer Rec.</span></td>
-                        <td>Urea, DAP, Potash</td>
-                        <td>15 May 2025</td>
-                      </tr>
+                    <tbody id="recent-activity-body">
+                      <tr><td colspan="3" class="text-muted">Loading…</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -291,22 +279,22 @@
                   <div class="pie-chart-mock">
                     <svg viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e0e0e0" stroke-width="20" />
-                      <!-- Diseased 7% (red) -->
-                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#dc3545" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="0" />
-                      <!-- At Risk 15% (orange) -->
-                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ffc107" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="17.5" />
-                      <!-- Healthy 78% (green) -->
-                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#28a745" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="55.2" />
+                      <!-- Diseased (red) -->
+                      <circle id="donut-diseased" cx="50" cy="50" r="40" fill="transparent" stroke="#dc3545" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="0" />
+                      <!-- At Risk (orange) -->
+                      <circle id="donut-atrisk" cx="50" cy="50" r="40" fill="transparent" stroke="#ffc107" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="0" />
+                      <!-- Healthy (green) -->
+                      <circle id="donut-healthy" cx="50" cy="50" r="40" fill="transparent" stroke="#28a745" stroke-width="20" stroke-dasharray="251.2" stroke-dashoffset="0" />
                     </svg>
                     <div class="pie-chart-center">
-                      <span class="percentage">78%</span>
-                      <span class="label">Healthy</span>
+                      <span class="percentage" id="donut-center-pct">—</span>
+                      <span class="label" id="donut-center-label">No scans yet</span>
                     </div>
                   </div>
                   <div class="chart-legend">
-                    <div><span class="legend-color healthy"></span> Healthy (78%)</div>
-                    <div><span class="legend-color risk"></span> At Risk (15%)</div>
-                    <div><span class="legend-color diseased"></span> Diseased (7%)</div>
+                    <div><span class="legend-color healthy"></span> Healthy (<span id="legend-healthy-pct">0</span>%)</div>
+                    <div><span class="legend-color risk"></span> At Risk (<span id="legend-risk-pct">0</span>%)</div>
+                    <div><span class="legend-color diseased"></span> Diseased (<span id="legend-diseased-pct">0</span>%)</div>
                   </div>
                 </div>
               </div>
@@ -863,24 +851,7 @@
                     </tr>
                   </thead>
                   <tbody id="history-table-body">
-                    <tr>
-                      <td>17 May 2025, 02:30 PM</td>
-                      <td><span class="activity-type disease"><i class="fas fa-virus-slash"></i> Disease Detection</span></td>
-                      <td>Tomato Leaf Image (Upload)</td>
-                      <td>Early Blight (94.21% Confidence)</td>
-                    </tr>
-                    <tr>
-                      <td>16 May 2025, 11:15 AM</td>
-                      <td><span class="activity-type crop"><i class="fas fa-seedling"></i> Crop Rec.</span></td>
-                      <td>N:60, P:40, K:40, pH:6.5, Temp:28°C</td>
-                      <td>Recommended Crop: Maize (92% Suitability)</td>
-                    </tr>
-                    <tr>
-                      <td>15 May 2025, 09:40 AM</td>
-                      <td><span class="activity-type fertilizer"><i class="fas fa-flask"></i> Fertilizer Rec.</span></td>
-                      <td>Maize, Alluvial Soil, N:50, P:35, K:30</td>
-                      <td>Urea (80kg), DAP (50kg), MOP (30kg)</td>
-                    </tr>
+                    <tr><td colspan="4" class="text-muted">Loading…</td></tr>
                   </tbody>
                 </table>
               </div>

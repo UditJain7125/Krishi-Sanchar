@@ -5,19 +5,22 @@
 // After your first Render deploy, replace these with the actual URLs Render
 // assigns (Dashboard → each service → the URL shown at the top, usually
 // https://<service-name>.onrender.com if that name was free).
-const isLocalBackend = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
 const API = {
-  crop: isLocalBackend ? 'http://localhost:8000' : 'https://krishisanchar-crop-c3wq.onrender.com',
-  fertilizer: isLocalBackend ? 'http://localhost:8001' : 'https://krishisanchar-fertilizer-c3wq.onrender.com',
-  yieldPrediction: isLocalBackend ? 'http://localhost:8002' : 'https://krishisanchar-yield-c3wq.onrender.com',
-  market: isLocalBackend ? 'http://localhost:8003' : 'https://krishisanchar-market-c3wq.onrender.com',
-  weather: isLocalBackend ? 'http://localhost:8004' : 'https://krishisanchar-weather-c3wq.onrender.com',
-  assistant: isLocalBackend ? 'http://localhost:8005' : 'https://krishisanchar-assistant-c3wq.onrender.com',
-  disease: isLocalBackend ? 'http://localhost:8006' : 'https://krishisanchar-disease-c3wq.onrender.com',
-  auth: isLocalBackend ? 'http://localhost:8007' : 'https://krishisanchar-auth-c3wq.onrender.com',
+  crop: 'https://krishisanchar-crop-c3wq.onrender.com',
+  fertilizer: 'https://krishisanchar-fertilizer-c3wq.onrender.com',
+  yieldPrediction: 'https://krishisanchar-yield-c3wq.onrender.com',
+  market: 'https://krishisanchar-market-c3wq.onrender.com',
+  weather: 'https://krishisanchar-weather-c3wq.onrender.com',
+  assistant: 'https://krishisanchar-assistant-c3wq.onrender.com',
+  disease: 'https://krishisanchar-disease-c3wq.onrender.com',
+  // Placeholder — update this once auth_service.py is deployed on Render,
+  // same as every other service above.
+  auth: 'https://krishisanchar-auth-c3wq.onrender.com',
 };
 
+// Cached farmer profile (set by loadProfileData()) — reused by the
+// dashboard's weather card so we don't have to re-fetch /me every time.
+let currentProfile = null;
 
 // Local fallback icons — the crop API doesn't return an image, so we map
 // the crop name it returns to an icon on our side.
@@ -63,13 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initAiAssistant();
   initYieldPrediction();
   initWeatherForecast();
-
-  // If a valid session exists, load dashboard directly with saved history
-  if (getAuthToken()) {
-    enterDashboard();
-  } else {
-    showLoginPage();
-  }
 });
 
 // ==========================================================================
@@ -145,16 +141,14 @@ function showInfoPage(pageId) {
 async function enterDashboard() {
   showView('dashboard-page');
   switchDashboardTab('dashboard-overview');
-  await loadProfileData();
-  await loadUserHistory();
+  await loadProfileData(); // weather needs currentProfile.location, so wait for it
+  loadDashboardWeather();
+  loadHistoryTable();
 }
 
 // Logout: clear the stored session and return to the login page.
 function logout() {
   clearAuthToken();
-  currentFarmer = null;
-  localStorage.removeItem('krishisanchar_current_farmer');
-  renderHistoryTables([]);
   showLoginPage();
 }
 
@@ -204,11 +198,7 @@ async function handleLoginSubmit(event) {
     }
 
     setAuthToken(data.access_token);
-    if (data.farmer_id) {
-      currentFarmer = { farmer_id: data.farmer_id };
-      localStorage.setItem('krishisanchar_current_farmer', JSON.stringify(currentFarmer));
-    }
-    await enterDashboard();
+    enterDashboard();
 
   } catch (err) {
     errorBox.textContent = err.message || 'Something went wrong. Please try again.';
@@ -282,35 +272,6 @@ async function handleSignupSubmit(event) {
 // ==========================================
 // AUTH: load real profile data into "My Profile" panel
 // ==========================================
-let currentFarmer = null;
-
-function getCurrentFarmerId() {
-  if (currentFarmer && currentFarmer.farmer_id) {
-    return currentFarmer.farmer_id;
-  }
-  const cached = localStorage.getItem('krishisanchar_current_farmer');
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached);
-      if (parsed && parsed.farmer_id) {
-        currentFarmer = parsed;
-        return parsed.farmer_id;
-      }
-    } catch (e) {}
-  }
-  const token = getAuthToken();
-  if (token) {
-    try {
-      const parts = token.split('.');
-      if (parts.length === 3) {
-        const payload = JSON.parse(atob(parts[1]));
-        if (payload && payload.sub) return payload.sub;
-      }
-    } catch (e) {}
-  }
-  return 'default_farmer';
-}
-
 async function loadProfileData() {
   const token = getAuthToken();
   if (!token) return;
@@ -328,34 +289,24 @@ async function loadProfileData() {
     }
 
     const user = await res.json();
-    currentFarmer = user;
-    localStorage.setItem('krishisanchar_current_farmer', JSON.stringify(user));
+    currentProfile = user;
 
-    const nameEl = document.getElementById('profile-name');
-    if (nameEl) nameEl.textContent = user.full_name || '—';
-    const sinceEl = document.getElementById('profile-since');
-    if (sinceEl) sinceEl.textContent = user.created_at ? ` since ${new Date(user.created_at).getFullYear()}` : '';
-    const idEl = document.getElementById('profile-farmer-id');
-    if (idEl) idEl.textContent = user.farmer_id || '—';
-    const locEl = document.getElementById('profile-location');
-    if (locEl) locEl.textContent = user.location || '—';
-    const areaEl = document.getElementById('profile-land-area');
-    if (areaEl) areaEl.textContent = user.land_area_acres ? `${user.land_area_acres} Acres` : '—';
-    const soilEl = document.getElementById('profile-soil-type');
-    if (soilEl) soilEl.textContent = user.soil_type || '—';
-    const cropEl = document.getElementById('profile-primary-crop');
-    if (cropEl) cropEl.textContent = user.primary_crop || '—';
-    const irrEl = document.getElementById('profile-irrigation');
-    if (irrEl) irrEl.textContent = user.irrigation_source || '—';
+    document.getElementById('profile-name').textContent = user.full_name || '—';
+    document.getElementById('profile-since').textContent =
+      user.created_at ? ` since ${new Date(user.created_at).getFullYear()}` : '';
+    document.getElementById('profile-farmer-id').textContent = user.farmer_id || '—';
+    document.getElementById('profile-location').textContent = user.location || '—';
+    document.getElementById('profile-land-area').textContent =
+      user.land_area_acres ? `${user.land_area_acres} Acres` : '—';
+    document.getElementById('profile-soil-type').textContent = user.soil_type || '—';
+    document.getElementById('profile-primary-crop').textContent = user.primary_crop || '—';
+    document.getElementById('profile-irrigation').textContent = user.irrigation_source || '—';
 
-    // Update topbar name and location dynamically
-    const topbarName = document.getElementById('topbar-user-name');
-    if (topbarName) topbarName.textContent = user.full_name || '—';
-    const topbarLoc = document.getElementById('topbar-location');
-    if (topbarLoc) topbarLoc.textContent = user.location || 'India';
+    return user;
 
   } catch (err) {
     console.error('Failed to load profile:', err);
+    return null;
   }
 }
 
@@ -382,6 +333,13 @@ function switchDashboardTab(targetTabId) {
       panel.classList.add('active');
     }
   });
+
+  // Keep the Disease Alerts count, Crop Health donut, Recent Activity and
+  // the full History table in sync with the database whenever the user
+  // visits either page — not just right after login.
+  if (targetTabId === 'dashboard-overview' || targetTabId === 'history-log') {
+    loadHistoryTable();
+  }
 }
 
 // Shortcut to open dashboard to specific tab
@@ -436,23 +394,11 @@ function toggleNotifications() {
 let activeScheme = '';
 
 function openSchemeModal(schemeName) {
-  if (window.event) window.event.preventDefault();
+  event.preventDefault();
   activeScheme = schemeName;
   const modal = document.getElementById('scheme-modal');
   const title = document.getElementById('modal-title');
   title.textContent = `Apply for ${schemeName} Scheme`;
-
-  if (currentFarmer) {
-    const nameInput = document.getElementById('applicant-name');
-    if (nameInput && currentFarmer.full_name) {
-      nameInput.value = currentFarmer.full_name;
-    }
-    const landInput = document.getElementById('applicant-land');
-    if (landInput && currentFarmer.land_area_acres) {
-      landInput.value = (currentFarmer.land_area_acres * 0.4047).toFixed(1);
-    }
-  }
-
   modal.classList.add('active');
 }
 
@@ -488,237 +434,266 @@ function showToast(message) {
 }
 
 // ==========================================
-// HISTORY STORAGE & UI RENDERING
+// HISTORY: persist to the backend, then re-render from real data
 // ==========================================
-function getHistoryStorageKey(farmerId) {
-  const id = farmerId || getCurrentFarmerId();
-  return `krishisanchar_history_${id}`;
+// Note: the `date` argument is kept for backward compatibility with every
+// existing call site, but it's unused — the server sets created_at itself,
+// and every view below re-renders from the server's copy, not a locally
+// guessed timestamp.
+async function addHistoryLog(date, type, params, result) {
+  const token = getAuthToken();
+  if (!token) return; // not logged in — nothing to persist
+
+  try {
+    const res = await fetch(`${API.auth}/history`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        activity_type: type,
+        input_summary: params,
+        result_summary: result,
+      }),
+    });
+
+    if (!res.ok) {
+      console.error('Failed to save history entry:', await res.text());
+      return;
+    }
+  } catch (err) {
+    console.error('Failed to save history entry:', err);
+    return;
+  }
+
+  // Refresh every view that depends on history, now that there's a new
+  // real entry in the database.
+  await loadHistoryTable();
 }
 
-function getLocalHistory(farmerId) {
+function historyTypeClass(type) {
+  const t = type.toLowerCase();
+  if (t.includes('disease')) return 'disease';
+  if (t.includes('fertilizer')) return 'fertilizer';
+  return 'crop';
+}
+
+function historyTypeIcon(typeClass) {
+  if (typeClass === 'disease') return 'fa-virus-slash';
+  if (typeClass === 'fertilizer') return 'fa-flask';
+  return 'fa-seedling';
+}
+
+function buildHistoryRow(entry) {
+  const typeClass = historyTypeClass(entry.activity_type);
+  const icon = historyTypeIcon(typeClass);
+  const dateStr = entry.created_at
+    ? new Date(entry.created_at).toLocaleString()
+    : '—';
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${dateStr}</td>
+    <td><span class="activity-type ${typeClass}"><i class="fas ${icon}"></i> ${entry.activity_type}</span></td>
+    <td>${entry.input_summary}</td>
+    <td>${entry.result_summary}</td>
+  `;
+  return tr;
+}
+
+function renderRecentActivity(entries) {
+  const body = document.getElementById('recent-activity-body');
+  if (!body) return;
+
+  if (entries.length === 0) {
+    body.innerHTML = '<tr><td colspan="3" class="text-muted">No activity yet — try a feature from Quick Access.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = '';
+  entries.forEach(entry => {
+    const typeClass = historyTypeClass(entry.activity_type);
+    const icon = historyTypeIcon(typeClass);
+    const dateStr = entry.created_at
+      ? new Date(entry.created_at).toLocaleDateString()
+      : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="activity-type ${typeClass}"><i class="fas ${icon}"></i> ${entry.activity_type}</span></td>
+      <td>${entry.result_summary}</td>
+      <td>${dateStr}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+// Fetches the farmer's real history once, then updates every view that
+// depends on it: the full History page table, the dashboard's Recent
+// Activity feed, and the disease-alert count + Crop Health donut (both
+// derived from the "Disease Detection" entries within that same list).
+async function loadHistoryTable() {
+  const token = getAuthToken();
+  if (!token) return [];
+
   try {
-    const raw = localStorage.getItem(getHistoryStorageKey(farmerId));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
+    const res = await fetch(`${API.auth}/history?limit=100`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return [];
+
+    const entries = await res.json(); // newest first, per the backend
+
+    const fullTableBody = document.getElementById('history-table-body');
+    if (fullTableBody) {
+      if (entries.length === 0) {
+        fullTableBody.innerHTML = '<tr><td colspan="4" class="text-muted">No activity yet — start using a feature to see it here.</td></tr>';
+      } else {
+        fullTableBody.innerHTML = '';
+        entries.forEach(entry => fullTableBody.appendChild(buildHistoryRow(entry)));
+      }
+    }
+
+    renderRecentActivity(entries.slice(0, 3));
+    updateCropHealthFromHistory(entries);
+
+    return entries;
+  } catch (err) {
+    console.error('Failed to load history:', err);
     return [];
   }
 }
 
-function saveLocalHistory(farmerId, entries) {
-  try {
-    const list = Array.isArray(entries) ? entries.slice(0, 100) : [];
-    localStorage.setItem(getHistoryStorageKey(farmerId), JSON.stringify(list));
-  } catch (e) {
-    console.warn('Could not save history to localStorage:', e);
+// ==========================================
+// DASHBOARD: Crop Health Overview donut + Disease Alerts count
+// ==========================================
+// Classification rule (the disease model only returns "healthy" or a
+// disease name + confidence — there's no native "at risk" category):
+//   Healthy  -> model said healthy
+//   Diseased -> disease detected with >= 70% confidence
+//   At Risk  -> disease detected with  < 70% confidence (model isn't very
+//               sure, worth monitoring rather than treating as confirmed)
+const AT_RISK_CONFIDENCE_THRESHOLD = 70;
+
+function classifyDiseaseEntry(resultSummary) {
+  if (/\bHealthy\b/.test(resultSummary) && !/Confidence\)/.test(resultSummary)) {
+    return 'healthy';
   }
+  const match = resultSummary.match(/\(([\d.]+)%\s*Confidence\)/i);
+  if (match) {
+    const confidence = parseFloat(match[1]);
+    return confidence >= AT_RISK_CONFIDENCE_THRESHOLD ? 'diseased' : 'at_risk';
+  }
+  return null; // unrecognised format — skip rather than misclassify
 }
 
-function formatHistoryDate(raw) {
-  if (!raw) return new Date().toLocaleString();
-  try {
-    const d = new Date(raw);
-    if (isNaN(d.getTime())) return raw;
-    return d.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  } catch (e) {
-    return raw;
-  }
-}
+function updateCropHealthFromHistory(allEntries) {
+  const diseaseEntries = allEntries.filter(e => e.activity_type === 'Disease Detection');
 
-function getActivityBadge(type) {
-  const t = (type || '').toLowerCase();
-  let typeClass = 'crop';
-  let icon = 'fa-seedling';
-  let displayName = type || 'Activity';
-
-  if (t.includes('disease')) {
-    typeClass = 'disease';
-    icon = 'fa-virus-slash';
-    displayName = 'Disease Detection';
-  } else if (t.includes('fertilizer')) {
-    typeClass = 'fertilizer';
-    icon = 'fa-flask';
-    displayName = 'Fertilizer Rec.';
-  } else if (t.includes('weather')) {
-    typeClass = 'weather';
-    icon = 'fa-cloud-sun-rain';
-    displayName = 'Weather Forecast';
-  } else if (t.includes('market')) {
-    typeClass = 'market';
-    icon = 'fa-chart-simple';
-    displayName = 'Market Analysis';
-  } else if (t.includes('yield')) {
-    typeClass = 'yield';
-    icon = 'fa-chart-line';
-    displayName = 'Yield Prediction';
-  } else if (t.includes('assistant') || t.includes('ai')) {
-    typeClass = 'assistant';
-    icon = 'fa-robot';
-    displayName = 'AI Assistant';
-  } else if (t.includes('scheme')) {
-    typeClass = 'scheme';
-    icon = 'fa-file-contract';
-    displayName = 'Scheme Registration';
-  } else if (t.includes('crop')) {
-    typeClass = 'crop';
-    icon = 'fa-seedling';
-    displayName = 'Crop Rec.';
-  }
-
-  return `<span class="activity-type ${typeClass}"><i class="fas ${icon}"></i> ${escapeHtml(displayName)}</span>`;
-}
-
-function renderHistoryTables(entries) {
-  const historyBody = document.getElementById('history-table-body');
-  const recentBody = document.getElementById('recent-activity-table-body');
-
-  const list = Array.isArray(entries) ? entries : [];
-
-  if (historyBody) {
-    if (list.length === 0) {
-      historyBody.innerHTML = `
-        <tr>
-          <td colspan="4" class="text-center text-muted" style="padding: 40px 20px;">
-            <i class="fas fa-history empty-icon" style="font-size: 32px; color: #cbd5e0; margin-bottom: 12px; display: block;"></i>
-            <strong>No Activity History Found</strong>
-            <p style="font-size: 13px; margin-top: 6px;">Your calculations, predictions, and diagnoses will be saved here automatically.</p>
-          </td>
-        </tr>
-      `;
-    } else {
-      historyBody.innerHTML = list.map(item => `
-        <tr>
-          <td>${escapeHtml(item.date)}</td>
-          <td>${getActivityBadge(item.type)}</td>
-          <td>${escapeHtml(item.params)}</td>
-          <td>${escapeHtml(item.result)}</td>
-        </tr>
-      `).join('');
-    }
-  }
-
-  if (recentBody) {
-    if (list.length === 0) {
-      recentBody.innerHTML = `
-        <tr>
-          <td colspan="3" class="text-center text-muted" style="padding: 25px 15px;">
-            <p style="font-size: 13px; margin: 0;">No recent activities yet. Use any of the services to get started.</p>
-          </td>
-        </tr>
-      `;
-    } else {
-      const recentFive = list.slice(0, 5);
-      recentBody.innerHTML = recentFive.map(item => {
-        const shortDate = item.date ? item.date.split(',')[0] : '';
-        return `
-          <tr>
-            <td>${getActivityBadge(item.type)}</td>
-            <td>${escapeHtml(item.result || item.params)}</td>
-            <td>${escapeHtml(shortDate)}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-  }
-}
-
-async function loadUserHistory() {
-  const farmerId = getCurrentFarmerId();
-
-  // 1. Immediately render cached history so user sees it with zero latency
-  const cached = getLocalHistory(farmerId);
-  renderHistoryTables(cached);
-
-  // 2. Fetch history from backend if authenticated
-  const token = getAuthToken();
-  if (!token) return;
-
-  try {
-    const res = await fetch(`${API.auth}/history?limit=100`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (res.ok) {
-      const serverHistory = await res.json();
-      if (Array.isArray(serverHistory)) {
-        const formatted = serverHistory.map(item => ({
-          id: item.id,
-          date: item.created_at ? formatHistoryDate(item.created_at) : new Date().toLocaleString(),
-          type: item.activity_type,
-          params: item.input_summary,
-          result: item.result_summary
-        }));
-
-        saveLocalHistory(farmerId, formatted);
-        renderHistoryTables(formatted);
-      }
-    }
-  } catch (err) {
-    console.warn('Backend history fetch error, fallback to local storage:', err);
-  }
-}
-
-// Add history row and sync
-function addHistoryLog(date, type, params, result) {
-  const farmerId = getCurrentFarmerId();
-  const dateFormatted = date || new Date().toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+  let healthy = 0, atRisk = 0, diseased = 0;
+  diseaseEntries.forEach(e => {
+    const cls = classifyDiseaseEntry(e.result_summary);
+    if (cls === 'healthy') healthy++;
+    else if (cls === 'at_risk') atRisk++;
+    else if (cls === 'diseased') diseased++;
   });
 
-  const entry = {
-    date: dateFormatted,
-    type: type,
-    params: String(params || ''),
-    result: String(result || '')
-  };
+  // Disease Alerts card: count of this farmer's own non-healthy scans.
+  const alertCountEl = document.getElementById('dash-disease-alert-count');
+  if (alertCountEl) alertCountEl.textContent = String(atRisk + diseased);
 
-  // 1. Save to local storage
-  const entries = getLocalHistory(farmerId);
-  entries.unshift(entry);
-  saveLocalHistory(farmerId, entries);
+  const total = healthy + atRisk + diseased;
+  const centerPctEl = document.getElementById('donut-center-pct');
+  const centerLabelEl = document.getElementById('donut-center-label');
+  const legendHealthyEl = document.getElementById('legend-healthy-pct');
+  const legendRiskEl = document.getElementById('legend-risk-pct');
+  const legendDiseasedEl = document.getElementById('legend-diseased-pct');
+  const circDiseased = document.getElementById('donut-diseased');
+  const circAtRisk = document.getElementById('donut-atrisk');
+  const circHealthy = document.getElementById('donut-healthy');
 
-  // 2. Update UI immediately
-  renderHistoryTables(entries);
+  if (total === 0) {
+    if (centerPctEl) centerPctEl.textContent = '—';
+    if (centerLabelEl) centerLabelEl.textContent = 'No scans yet';
+    [legendHealthyEl, legendRiskEl, legendDiseasedEl].forEach(el => { if (el) el.textContent = '0'; });
+    const CIRCUMFERENCE = 251.2;
+    [circDiseased, circAtRisk, circHealthy].forEach(c => { if (c) c.setAttribute('stroke-dasharray', `0 ${CIRCUMFERENCE}`); });
+    return;
+  }
 
-  // 3. Sync to backend API if logged in
-  const token = getAuthToken();
-  if (token) {
-    let apiType = type;
-    if (type === 'Fertilizer Rec.') apiType = 'Fertilizer Recommendation';
-    if (type === 'Crop Rec.') apiType = 'Crop Recommendation';
-    if (type === 'Weather Forecast') apiType = 'Weather Forecast';
+  const healthyPct = Math.round((healthy / total) * 100);
+  const atRiskPct = Math.round((atRisk / total) * 100);
+  const diseasedPct = Math.max(0, 100 - healthyPct - atRiskPct); // absorb rounding drift
 
-    fetch(`${API.auth}/history`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        activity_type: apiType,
-        input_summary: String(params || 'N/A'),
-        result_summary: String(result || 'N/A')
-      })
-    }).then(async res => {
-      if (!res.ok) {
-        console.warn('History API sync failed with status:', res.status);
-      }
-    }).catch(err => {
-      console.warn('History API sync failed (saved locally):', err);
-    });
+  if (centerPctEl) centerPctEl.textContent = `${healthyPct}%`;
+  if (centerLabelEl) centerLabelEl.textContent = 'Healthy';
+  if (legendHealthyEl) legendHealthyEl.textContent = String(healthyPct);
+  if (legendRiskEl) legendRiskEl.textContent = String(atRiskPct);
+  if (legendDiseasedEl) legendDiseasedEl.textContent = String(diseasedPct);
+
+  // Stacked-donut technique: each ring is drawn as a partial circle
+  // (dasharray = "length-of-this-segment total-circumference") then
+  // rotated into place with dashoffset. Circumference = 2 * PI * r(40).
+  const CIRCUMFERENCE = 251.2;
+  const diseasedLen = (diseasedPct / 100) * CIRCUMFERENCE;
+  const atRiskLen = (atRiskPct / 100) * CIRCUMFERENCE;
+  const healthyLen = (healthyPct / 100) * CIRCUMFERENCE;
+
+  if (circDiseased) {
+    circDiseased.setAttribute('stroke-dasharray', `${diseasedLen} ${CIRCUMFERENCE}`);
+    circDiseased.setAttribute('stroke-dashoffset', '0');
+  }
+  if (circAtRisk) {
+    circAtRisk.setAttribute('stroke-dasharray', `${atRiskLen} ${CIRCUMFERENCE}`);
+    circAtRisk.setAttribute('stroke-dashoffset', String(-diseasedLen));
+  }
+  if (circHealthy) {
+    circHealthy.setAttribute('stroke-dasharray', `${healthyLen} ${CIRCUMFERENCE}`);
+    circHealthy.setAttribute('stroke-dashoffset', String(-(diseasedLen + atRiskLen)));
+  }
+}
+
+// ==========================================
+// DASHBOARD: real weather for the farmer's signup location
+// ==========================================
+async function loadDashboardWeather() {
+  const tempEl = document.getElementById('dash-weather-temp');
+  const descEl = document.getElementById('dash-weather-desc');
+  const humidityEl = document.getElementById('dash-weather-humidity');
+  const windEl = document.getElementById('dash-weather-wind');
+  const rainEl = document.getElementById('dash-weather-rain');
+  if (!tempEl) return; // not on the dashboard overview panel
+
+  const location = currentProfile && currentProfile.location;
+  if (!location) {
+    if (descEl) descEl.textContent = 'Add your location in My Profile';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API.weather}/weather/${encodeURIComponent(location)}`);
+    if (!res.ok) {
+      if (descEl) descEl.textContent = 'Could not load weather';
+      return;
+    }
+    const data = await res.json();
+    const current = data.forecast && data.forecast[0];
+    if (!current) {
+      if (descEl) descEl.textContent = 'No forecast available';
+      return;
+    }
+
+    if (tempEl) tempEl.textContent = `${Math.round(current.temperature)}°C`;
+    if (descEl) descEl.textContent = current.weather || '—';
+    if (humidityEl) humidityEl.textContent = `${current.humidity}%`;
+    if (windEl) windEl.textContent = `${current.wind_speed} km/h`;
+    // The backend reports rain as mm in the last 3h, not a %, so label it
+    // honestly rather than reusing the old (fake) percentage placeholder.
+    if (rainEl) rainEl.textContent = `${current.rain} mm`;
+
+  } catch (err) {
+    console.error('Failed to load dashboard weather:', err);
+    if (descEl) descEl.textContent = 'Could not load weather';
   }
 }
 
@@ -1287,10 +1262,8 @@ function sendQuickPrompt(promptText) {
 // ==========================================================================
 function initYieldPrediction() {
   const form = document.getElementById('yield-form');
-  const emptyState = document.getElementById('yield-empty-state');
   const yieldResultVal = document.getElementById('predicted-yield-val');
   const yieldTotalVal = document.getElementById('predicted-total-val');
-  const yieldAccuracyVal = document.getElementById('predicted-accuracy-val');
   const resultCard = document.getElementById('yield-result-card');
   const errorState = document.getElementById('yield-error-state');
   const errorMessage = document.getElementById('yield-error-message');
@@ -1350,17 +1323,10 @@ function initYieldPrediction() {
       //   historical_trend: [...] }
       const yieldPerAcre = data.predicted_yield_per_acre;
       const totalYield = data.total_estimated_yield;
-      const accuracy = data.model_accuracy || 92.6;
 
       yieldResultVal.textContent = `${yieldPerAcre.toFixed(1)} Quintals / acre`;
       yieldTotalVal.textContent = `${totalYield.toFixed(0)} Quintals`;
-      if (yieldAccuracyVal) {
-        yieldAccuracyVal.textContent = `${accuracy.toFixed(1)}%`;
-      }
 
-      renderYieldTrendChart(data.historical_trend, yieldPerAcre);
-
-      if (emptyState) emptyState.style.display = 'none';
       errorState.style.display = 'none';
       resultCard.style.display = 'block';
 
@@ -1376,7 +1342,6 @@ function initYieldPrediction() {
     } catch (err) {
       console.error('Yield prediction failed:', err);
       errorMessage.textContent = err.message || 'Could not reach the yield prediction service.';
-      if (emptyState) emptyState.style.display = 'none';
       resultCard.style.display = 'none';
       errorState.style.display = 'block';
       showToast('Yield prediction failed — see details on the right.');
@@ -1385,63 +1350,6 @@ function initYieldPrediction() {
       submitBtn.innerHTML = 'Predict Yield <i class="fas fa-chart-line"></i>';
     }
   });
-}
-
-function renderYieldTrendChart(trendData, currentPrediction) {
-  const container = document.getElementById('yield-trend-container');
-  if (!container) return;
-
-  let points = [];
-  if (Array.isArray(trendData) && trendData.length) {
-    points = trendData.map(d => ({
-      year: d.year || d.Year || d.label,
-      val: Number(d.yield || d.Yield || d.value || 0)
-    }));
-  }
-
-  if (!points.length) {
-    const curYear = new Date().getFullYear();
-    const pVal = Number(currentPrediction) || 20;
-    points = [
-      { year: curYear - 4, val: +(pVal * 0.78).toFixed(1) },
-      { year: curYear - 3, val: +(pVal * 0.84).toFixed(1) },
-      { year: curYear - 2, val: +(pVal * 0.89).toFixed(1) },
-      { year: curYear - 1, val: +(pVal * 0.94).toFixed(1) },
-      { year: `${curYear}(P)`, val: +pVal.toFixed(1) }
-    ];
-  }
-
-  const values = points.map(p => p.val);
-  const minVal = Math.min(...values) * 0.85;
-  const maxVal = Math.max(...values) * 1.15;
-  const range = maxVal - minVal || 1;
-
-  const chartTop = 15;
-  const chartHeight = 50;
-  const coords = points.map((p, i) => {
-    const x = 20 + i * (160 / (points.length - 1 || 1));
-    const normalized = (p.val - minVal) / range;
-    const y = chartTop + chartHeight - (normalized * chartHeight);
-    return { ...p, x: Math.round(x), y: Math.round(y) };
-  });
-
-  const pathD = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${c.y}`).join(' ');
-
-  container.innerHTML = `
-    <svg viewBox="0 0 200 80" class="svg-trend-chart">
-      <line x1="10" y1="15" x2="190" y2="15" stroke="#f0f0f0" stroke-width="1" />
-      <line x1="10" y1="40" x2="190" y2="40" stroke="#f0f0f0" stroke-width="1" />
-      <line x1="10" y1="65" x2="190" y2="65" stroke="#f0f0f0" stroke-width="1" />
-      <path d="${pathD}" fill="none" stroke="#28a745" stroke-width="3" />
-      ${coords.map((c, idx) => {
-        const isLast = idx === coords.length - 1;
-        return `
-          <circle cx="${c.x}" cy="${c.y}" r="4" fill="${isLast ? '#ffc107' : '#28a745'}" ${isLast ? 'class="pulse-chart-dot"' : ''} />
-          <text x="${c.x}" y="76" font-size="7" fill="${isLast ? '#ffc107' : '#888'}" text-anchor="middle" font-weight="${isLast ? 'bold' : 'normal'}">${c.year}</text>
-        `;
-      }).join('')}
-    </svg>
-  `;
 }
 
 // Populates the crop / soil <select> elements from GET /options so the
@@ -1580,7 +1488,6 @@ function initWeatherForecast() {
   if (!form) return; // panel not present — skip silently
 
   const cityInput = document.getElementById('weather-city-input');
-  const emptyState = document.getElementById('weather-empty-state');
   const loadingState = document.getElementById('weather-loading-state');
   const errorState = document.getElementById('weather-error-state');
   const errorMessageEl = document.getElementById('weather-error-message');
@@ -1599,7 +1506,6 @@ function initWeatherForecast() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = 'Fetching... <i class="fas fa-spinner fa-spin"></i>';
 
-    if (emptyState) emptyState.style.display = 'none';
     resultsWrap.style.display = 'none';
     errorState.style.display = 'none';
     loadingState.style.display = 'block';
@@ -1620,7 +1526,6 @@ function initWeatherForecast() {
       renderWeatherResults(data, { resultCityEl, dayGrid, adviceGrid });
       updateNavWeatherWidget(data.forecast);
 
-      if (emptyState) emptyState.style.display = 'none';
       resultsWrap.style.display = 'block';
 
       addHistoryLog(
@@ -1634,7 +1539,6 @@ function initWeatherForecast() {
     } catch (err) {
       console.error('Weather forecast failed:', err);
       errorMessageEl.textContent = err.message || 'Could not reach the weather service.';
-      if (emptyState) emptyState.style.display = 'none';
       errorState.style.display = 'block';
       showToast('Could not reach the weather forecast service.');
     } finally {
