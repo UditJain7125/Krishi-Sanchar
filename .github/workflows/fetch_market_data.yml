@@ -1,0 +1,32 @@
+name: Fetch Daily Market Prices
+
+on:
+  schedule:
+    # Runs every day at 1:30 AM IST (8:00 PM UTC previous day)
+    # AGMARKNET updates prices daily around midnight IST
+    - cron: '0 20 * * *'
+  workflow_dispatch:   # allow manual trigger from GitHub Actions tab
+
+jobs:
+  fetch-prices:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests sqlalchemy psycopg2-binary python-dotenv
+
+      - name: Fetch and store market prices
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MARKETPRICE_API_KEY: ${{ secrets.MARKETPRICE_API_KEY }}
+        run: |
+          python scripts/fetch_market_data.py

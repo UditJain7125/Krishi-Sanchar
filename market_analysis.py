@@ -1,30 +1,45 @@
+"""
+market_analysis.py  —  KrishiSanchar Market Analysis Service
+-------------------------------------------------------------
+Reads mandi commodity price records from the PostgreSQL (Neon) database
+(populated daily by the GitHub Actions workflow fetch_market_data.yml)
+instead of hitting data.gov.in at request-time.
+
+This eliminates two failure modes that plagued the original design:
+  1. data.gov.in blocking Render's AWS IP range (Connection Refused)
+  2. data.gov.in downtime / intermittent unavailability
+
+Gemini still provides the AI analysis (price range, best/worst market,
+farmer advice) — only the raw price data source has changed.
+
+Environment variables (set in Render → Environment):
+    DATABASE_URL    — Neon PostgreSQL connection string
+    GEMINI_API_KEY  — Google Gemini API key
+"""
+
 import json
 import os
 import re
 import time
 from typing import Optional
 
-import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+from sqlalchemy import create_engine, text
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-
 load_dotenv()
 
+# ── App ───────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="Smart Agriculture Market Analysis API",
-    description="AGMARKNET + Gemini powered market analysis",
-    version="1.1"
+    description="PostgreSQL-backed mandi prices + Gemini AI analysis",
+    version="2.0"
 )
 
-# Allow the KrishiSanchar frontend (served from a different origin/port)
-# to call this API from the browser.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://uditjain7125.github.io"],
@@ -32,56 +47,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Config ────────────────────────────────────────────────────────────────────
 
-# API Keys
-MARKET_API_KEY = os.getenv("MARKETPRICE_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+DATABASE_URL   = os.getenv("DATABASE_URL", "")
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set.")
 
-# AGMARKNET API
-BASE_URL = (
-    "https://api.data.gov.in/resource/"
-    "9ef84268-d588-465a-a308-a864a43d0070"
+# Normalise URL scheme for SQLAlchemy / psycopg2
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = "postgresql+psycopg2://" + DATABASE_URL[len("postgresql://"):]
+
+# ── Database engine ───────────────────────────────────────────────────────────
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    connect_args={"connect_timeout": 15},
 )
 
-
-# -----------------------------
-# Requests retry configuration
-# -----------------------------
-
-session = requests.Session()
-
-retry = Retry(
-    total=5,
-    backoff_factor=1,
-    status_forcelist=[
-        429,
-        500,
-        502,
-        503,
-        504
-    ]
-)
-
-adapter = HTTPAdapter(
-    max_retries=retry
-)
-
-session.mount(
-    "https://",
-    adapter
-)
-
-# AGMARKNET silently blocks/throttles requests carrying the default
-# "python-requests/x.x" User-Agent. Spoofing a curl-like UA fixes it.
-session.headers.update({
-    "User-Agent": "curl/8.4.0"
-})
-
-
-# -----------------------------
-# Gemini Model
-# -----------------------------
+# ── Gemini LLM ────────────────────────────────────────────────────────────────
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
@@ -92,9 +81,7 @@ llm = ChatGoogleGenerativeAI(
 
 
 def _content_to_text(content) -> str:
-    """Newer Gemini models (3.x) can return .content as a list of parts
-    instead of a plain string; older ones return a plain string. Normalize
-    either shape to a single string before json.loads()/regex/etc."""
+    """Normalise Gemini response content (string or list of parts)."""
     if isinstance(content, str):
         return content
     if isinstance(content, list):
@@ -108,13 +95,9 @@ def _content_to_text(content) -> str:
     return "" if content is None else str(content)
 
 
-# -----------------------------
-# Simple in-memory TTL cache
-# -----------------------------
-# Prices don't change every second, so we cache per-crop responses
-# for a short window to cut latency and avoid hammering AGMARKNET/Gemini.
+# ── Simple in-memory TTL cache ────────────────────────────────────────────────
 
-CACHE_TTL_SECONDS = 20 * 60  # 20 minutes
+CACHE_TTL_SECONDS = 20 * 60   # 20 minutes
 _cache: dict[str, dict] = {}
 
 
@@ -132,95 +115,80 @@ def _cache_set(key: str, data: dict) -> None:
     _cache[key] = {"ts": time.time(), "data": data}
 
 
-# -----------------------------
-# AGMARKNET fetch with pagination
-# -----------------------------
-# We deliberately do NOT rely on AGMARKNET's server-side
-# filters[commodity] — it has proven unreliable (sometimes ignored,
-# sometimes causes 400s/timeouts). Instead we page through batches
-# and filter client-side, stopping early once we have enough matches
-# or we run out of pages to try.
+# ── DB query ──────────────────────────────────────────────────────────────────
 
-PAGE_SIZE = 200
-MAX_PAGES = 5  # cap total AGMARKNET calls per request
-
-
-def _fetch_records_for_crop(crop_name_lower: str) -> list[dict]:
-    matches: list[dict] = []
-
-    for page in range(MAX_PAGES):
-        params = {
-            "api-key": MARKET_API_KEY,
-            "format": "json",
-            "limit": PAGE_SIZE,
-            "offset": page * PAGE_SIZE,
-        }
-
-        response = session.get(BASE_URL, params=params, timeout=20)
-
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=502,
-                detail={
-                    "error": "Market API failed",
-                    "status_code": response.status_code,
-                    "details": response.text,
-                },
-            )
-
-        batch = response.json().get("records", [])
-
-        if not batch:
-            # No more records to page through
-            break
-
-        matches.extend(
-            r for r in batch
-            if r.get("commodity", "").strip().lower() == crop_name_lower
+def _fetch_from_db(crop_name_lower: str) -> list[dict]:
+    """Return up to 30 market_prices rows for the given commodity."""
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(text("""
+                SELECT state, district, market, min_price, max_price, modal_price
+                FROM   market_prices
+                WHERE  LOWER(commodity) = :crop
+                ORDER  BY fetched_at DESC
+                LIMIT  30
+            """), {"crop": crop_name_lower}).fetchall()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "Database unavailable",
+                "details": str(exc),
+            },
         )
 
-        if len(matches) >= 20:
-            # Enough data to give a meaningful analysis; stop paging
-            break
+    return [
+        {
+            "state":       r.state,
+            "district":    r.district,
+            "market":      r.market,
+            "min_price":   r.min_price,
+            "max_price":   r.max_price,
+            "modal_price": r.modal_price,
+        }
+        for r in rows
+    ]
 
-    return matches
+
+def _db_last_updated() -> Optional[str]:
+    """Return the ISO timestamp of the most recent fetch, or None."""
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT MAX(fetched_at) FROM market_prices")
+            ).fetchone()
+            if row and row[0]:
+                return row[0].strftime("%d %b %Y, %I:%M %p IST")
+    except Exception:
+        pass
+    return None
 
 
-# -----------------------------
-# Routes
-# -----------------------------
+# ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.get("/")
 def home():
+    last = _db_last_updated()
     return {
-        "message": "Smart Agriculture Market Analysis API Running"
+        "message": "Smart Agriculture Market Analysis API v2 Running",
+        "data_source": "PostgreSQL (updated daily via GitHub Actions)",
+        "last_updated": last or "No data fetched yet",
     }
 
 
 @app.get("/market-analysis/{crop}")
 def market_analysis(crop: str):
 
-    crop_name = crop.strip().title()
-    cache_key = crop_name.lower()
+    crop_name      = crop.strip().title()
+    cache_key      = crop_name.lower()
 
     cached = _cache_get(cache_key)
     if cached:
         return {**cached, "cached": True}
 
-    print("Searching crop:", crop_name)
+    print("Querying DB for crop:", crop_name)
 
-    try:
-        records = _fetch_records_for_crop(cache_key)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=502,
-            detail={
-                "error": "Market API connection failed",
-                "details": str(e),
-            },
-        )
+    records = _fetch_from_db(cache_key)
 
     if not records:
         raise HTTPException(
@@ -228,34 +196,22 @@ def market_analysis(crop: str):
             detail={
                 "crop": crop_name,
                 "message": (
-                    "No market data found for this crop in the current "
-                    "batches searched. AGMARKNET only returns a slice of "
-                    "all mandi records per request; try again later or "
-                    "check the spelling of the crop name."
+                    f'No market data found for "{crop_name}". '
+                    "Price data is refreshed daily — the crop name may be "
+                    "slightly different in the AGMARKNET dataset (e.g. "
+                    '"Rice" vs "Paddy", "Groundnut" vs "Ground Nuts"). '
+                    "Try an alternate spelling or check back tomorrow."
                 ),
             },
         )
 
-    # Trim each record down to only the fields that matter for pricing.
-    # Used both as the LLM input and as the market_prices returned to
-    # the client, so we drop commodity/variety/grade/arrival_date.
-    trimmed = [
-        {
-            "state": r.get("state"),
-            "district": r.get("district"),
-            "market": r.get("market"),
-            "min_price": r.get("min_price"),
-            "max_price": r.get("max_price"),
-            "modal_price": r.get("modal_price"),
-        }
-        for r in records
-    ]
+    # ── Gemini analysis ───────────────────────────────────────────────────────
 
     prompt = f"""You are an agriculture market expert. Analyze the mandi
 price data below for {crop_name}.
 
 Market Data (JSON):
-{trimmed}
+{records}
 
 Respond with ONLY a valid JSON object, no markdown, no code fences, no
 preamble, no explanation outside the JSON. Use exactly these keys:
@@ -274,22 +230,18 @@ Do not include any text before or after the JSON object.
         result = llm.invoke(prompt)
         raw = _content_to_text(result.content).strip()
 
-        # Gemini sometimes wraps JSON in ```json fences despite instructions;
-        # strip those defensively before parsing.
+        # Strip markdown fences if present
         if raw.startswith("```"):
             raw = raw.strip("`")
             if raw.lower().startswith("json"):
                 raw = raw[4:].strip()
 
-        # Gemini occasionally emits a trailing comma before a closing
-        # } or ] despite instructions not to — that's invalid JSON and
-        # makes json.loads() below raise, so strip it defensively.
+        # Remove trailing commas before } or ]
         raw = re.sub(r",(\s*[}\]])", r"\1", raw)
 
         ai_analysis = json.loads(raw)
 
     except json.JSONDecodeError:
-        # Fall back to raw text so the client still gets something usable
         ai_analysis = {
             "price_range": None,
             "best_market": None,
@@ -304,12 +256,14 @@ Do not include any text before or after the JSON object.
             "advice": "Gemini analysis failed: " + str(e),
         }
 
+    last_updated = _db_last_updated()
+
     payload = {
-        "crop": crop_name,
-        "market_prices": trimmed,
-        "analysis": ai_analysis,
+        "crop":         crop_name,
+        "market_prices": records,
+        "analysis":     ai_analysis,
+        "last_updated": last_updated,
     }
 
     _cache_set(cache_key, payload)
-
     return {**payload, "cached": False}

@@ -142,6 +142,30 @@ class HistoryEntry(Base):
     )
 
 
+class MarketPrice(Base):
+    """One row per mandi price record fetched from AGMARKNET (data.gov.in).
+
+    The GitHub Actions workflow (fetch_market_data.yml) populates this table
+    daily. The market_analysis.py service reads from here at request time
+    instead of hitting data.gov.in live — eliminating the IP-block and
+    uptime problems with the government API.
+    """
+    __tablename__ = "market_prices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    commodity: Mapped[str] = mapped_column(String(100), index=True)
+    state: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    district: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    market: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    min_price: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    max_price: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    modal_price: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+    )
+
+
+
 # -----------------------------
 # Helpers
 # -----------------------------
