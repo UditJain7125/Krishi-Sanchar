@@ -2884,3 +2884,67 @@ td {
   line-height: 1.4;
   margin: 0;
 }
+
+/* Profile photo actions & avatar initial fallbacks */
+.avatar-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light, #e6f4ea);
+  color: var(--primary-color, #28a745);
+  font-weight: 600;
+}
+
+.profile-avatar-large .avatar-initial {
+  width: 100%;
+  height: 100%;
+  font-size: 52px;
+}
+
+.user-avatar.avatar-initial {
+  font-size: 15px;
+}
+
+.profile-photo-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.btn-photo {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-photo:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.btn-photo-danger {
+  color: #dc3545;
+  border-color: #f8d7da;
+  background: #fff5f5;
+}
+
+.btn-photo-danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.profile-photo-error {
+  font-size: 12px;
+  color: #dc3545;
+  margin-top: 4px;
+}

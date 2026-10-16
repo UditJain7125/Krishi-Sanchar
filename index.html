@@ -11,7 +11,6 @@
   <!-- Preconnect to CDNs used for icons/photos so those requests start early -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://cdn-icons-png.flaticon.com">
-  <link rel="preconnect" href="https://images.unsplash.com">
   <!-- FontAwesome for Icons: loaded non-render-blocking (preload + swap) so
        the page can paint before this ~90KB stylesheet finishes downloading -->
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
@@ -97,9 +96,9 @@
             <h2 id="current-page-title">Dashboard</h2>
           </div>
           <div class="topbar-right">
-            <div class="location-badge">
+            <div class="location-badge" id="topbar-location-badge" style="display:none;">
               <i class="fas fa-map-marker-alt"></i>
-              <span>New Delhi, India</span>
+              <span id="topbar-location"></span>
             </div>
             <div class="notification-bell" onclick="toggleNotifications()">
               <i class="fas fa-bell"></i>
@@ -113,9 +112,10 @@
               </div>
             </div>
             <div class="user-profile">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" alt="User Profile" class="user-avatar" loading="lazy">
+              <img id="topbar-avatar-img" alt="Profile photo" class="user-avatar" style="display:none;">
+              <span id="topbar-avatar-initial" class="user-avatar avatar-initial"><i class="fas fa-user"></i></span>
               <div class="user-info">
-                <span class="user-name">Ram Kumar</span>
+                <span class="user-name" id="topbar-user-name"></span>
                 <span class="user-role">Farmer</span>
               </div>
             </div>
@@ -866,8 +866,15 @@
               <!-- Farmer Info Card -->
               <div class="dashboard-card text-center">
                 <div class="profile-avatar-large">
-                  <img id="profile-avatar-img" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" alt="Profile" loading="lazy">
+                  <img id="profile-avatar-img" alt="Profile photo" style="display:none;">
+                  <span id="profile-avatar-initial" class="avatar-initial"><i class="fas fa-user"></i></span>
                 </div>
+                <div class="profile-photo-actions">
+                  <input type="file" id="profile-photo-input" accept="image/jpeg,image/png,image/webp" hidden>
+                  <button type="button" class="btn-photo" id="profile-photo-upload-btn"><i class="fas fa-camera"></i> <span id="profile-photo-upload-label">Add photo</span></button>
+                  <button type="button" class="btn-photo btn-photo-danger" id="profile-photo-remove-btn" style="display:none;"><i class="fas fa-trash"></i> Remove</button>
+                </div>
+                <p class="profile-photo-error" id="profile-photo-error" style="display:none;"></p>
                 <h2 id="profile-name">—</h2>
                 <p class="text-muted">Registered Farmer<span id="profile-since"></span></p>
                 <div class="badge-row mt-3">
@@ -916,10 +923,10 @@
           <div class="footer-bottom">
             <span>&copy; 2025 KrishiSanchar. All rights reserved.</span>
             <div class="footer-links">
-              <a href="javascript:void(0)">About Us</a>
-              <a href="javascript:void(0)">Contact Us</a>
-              <a href="javascript:void(0)">Privacy Policy</a>
-              <a href="javascript:void(0)">Terms & Conditions</a>
+              <a href="javascript:void(0)" onclick="showInfoPage('about-page')">About Us</a>
+              <a href="javascript:void(0)" onclick="showInfoPage('contact-page')">Contact Us</a>
+              <a href="javascript:void(0)" onclick="showInfoPage('privacy-page')">Privacy Policy</a>
+              <a href="javascript:void(0)" onclick="showInfoPage('terms-page')">Terms & Conditions</a>
             </div>
           </div>
         </footer>
@@ -1060,7 +1067,7 @@
   <!-- ========================================== -->
   <div id="about-page" class="view-section info-page">
     <div class="info-page-card">
-      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="info-back-btn" onclick="goBackFromInfoPage()"><i class="fas fa-arrow-left"></i> Back</button>
       <h1>About KrishiSanchar</h1>
       <p>KrishiSanchar ("Farmer's Message") is a smart agriculture platform built to put modern, data-driven farming tools directly into the hands of farmers. We combine AI-based crop disease detection, soil-aware crop and fertilizer recommendations, hyperlocal weather forecasting, and real-time market intelligence into one easy-to-use dashboard.</p>
       <p>Our mission is simple: help every farmer make better decisions, reduce crop loss, and improve yield and income through accessible technology.</p>
@@ -1079,7 +1086,7 @@
 
   <div id="contact-page" class="view-section info-page">
     <div class="info-page-card">
-      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="info-back-btn" onclick="goBackFromInfoPage()"><i class="fas fa-arrow-left"></i> Back</button>
       <h1>Contact Us</h1>
       <div class="dashboard-card">
         <h3>Get in Touch</h3>
@@ -1104,7 +1111,7 @@
 
   <div id="privacy-page" class="view-section info-page">
     <div class="info-page-card">
-      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="info-back-btn" onclick="goBackFromInfoPage()"><i class="fas fa-arrow-left"></i> Back</button>
       <h1>Privacy Policy</h1>
       <p class="text-muted">Last updated: September 2026</p>
       <p>KrishiSanchar ("we", "us", "our") is committed to protecting the privacy of farmers and other users of our platform. This policy explains what information we collect, how we use it, and the choices you have.</p>
@@ -1132,7 +1139,7 @@
 
   <div id="terms-page" class="view-section info-page">
     <div class="info-page-card">
-      <button class="info-back-btn" onclick="showLoginPage()"><i class="fas fa-arrow-left"></i> Back</button>
+      <button class="info-back-btn" onclick="goBackFromInfoPage()"><i class="fas fa-arrow-left"></i> Back</button>
       <h1>Terms &amp; Conditions</h1>
       <p class="text-muted">Last updated: September 2026</p>
       <p>By creating an account or using KrishiSanchar, you agree to the following terms. Please read them carefully.</p>

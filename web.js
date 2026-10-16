@@ -66,6 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initAiAssistant();
   initYieldPrediction();
   initWeatherForecast();
+  initProfilePhoto();
+
+  // If a valid session exists, load dashboard directly; otherwise show login
+  if (getAuthToken()) {
+    enterDashboard();
+  } else {
+    showLoginPage();
+  }
 });
 
 // ==========================================================================
@@ -133,8 +141,24 @@ function showSignupPage() {
   showView('signup-page');
 }
 
+let previousViewBeforeInfo = 'login-page';
+
 function showInfoPage(pageId) {
+  const current = document.querySelector('.view-section.active');
+  if (current) {
+    previousViewBeforeInfo = current.id;
+  }
   showView(pageId);
+}
+
+function goBackFromInfoPage() {
+  if (previousViewBeforeInfo === 'dashboard-page' && getAuthToken()) {
+    showView('dashboard-page');
+  } else if (previousViewBeforeInfo === 'signup-page') {
+    showSignupPage();
+  } else {
+    showLoginPage();
+  }
 }
 
 // Enter Dashboard View
@@ -149,6 +173,17 @@ async function enterDashboard() {
 // Logout: clear the stored session and return to the login page.
 function logout() {
   clearAuthToken();
+  currentProfile = null;
+
+  // Reset topbar and avatar
+  const topbarLocBadge = document.getElementById('topbar-location-badge');
+  if (topbarLocBadge) topbarLocBadge.style.display = 'none';
+  const topbarLoc = document.getElementById('topbar-location');
+  if (topbarLoc) topbarLoc.textContent = '';
+  const topbarName = document.getElementById('topbar-user-name');
+  if (topbarName) topbarName.textContent = '';
+  renderProfilePhoto(null);
+
   showLoginPage();
 }
 
@@ -291,22 +326,167 @@ async function loadProfileData() {
     const user = await res.json();
     currentProfile = user;
 
-    document.getElementById('profile-name').textContent = user.full_name || '—';
-    document.getElementById('profile-since').textContent =
-      user.created_at ? ` since ${new Date(user.created_at).getFullYear()}` : '';
-    document.getElementById('profile-farmer-id').textContent = user.farmer_id || '—';
-    document.getElementById('profile-location').textContent = user.location || '—';
-    document.getElementById('profile-land-area').textContent =
-      user.land_area_acres ? `${user.land_area_acres} Acres` : '—';
-    document.getElementById('profile-soil-type').textContent = user.soil_type || '—';
-    document.getElementById('profile-primary-crop').textContent = user.primary_crop || '—';
-    document.getElementById('profile-irrigation').textContent = user.irrigation_source || '—';
+    const nameEl = document.getElementById('profile-name');
+    if (nameEl) nameEl.textContent = user.full_name || '—';
+    const sinceEl = document.getElementById('profile-since');
+    if (sinceEl) sinceEl.textContent = user.created_at ? ` since ${new Date(user.created_at).getFullYear()}` : '';
+    const idEl = document.getElementById('profile-farmer-id');
+    if (idEl) idEl.textContent = user.farmer_id || '—';
+    const locEl = document.getElementById('profile-location');
+    if (locEl) locEl.textContent = user.location || '—';
+    const areaEl = document.getElementById('profile-land-area');
+    if (areaEl) areaEl.textContent = user.land_area_acres ? `${user.land_area_acres} Acres` : '—';
+    const soilEl = document.getElementById('profile-soil-type');
+    if (soilEl) soilEl.textContent = user.soil_type || '—';
+    const cropEl = document.getElementById('profile-primary-crop');
+    if (cropEl) cropEl.textContent = user.primary_crop || '—';
+    const irrEl = document.getElementById('profile-irrigation');
+    if (irrEl) irrEl.textContent = user.irrigation_source || '—';
+
+    // Topbar name
+    const topbarName = document.getElementById('topbar-user-name');
+    if (topbarName) {
+      topbarName.textContent = user.full_name || 'Farmer';
+    }
+
+    // Topbar location badge: shows city / district / state entered during signup
+    const topbarLoc = document.getElementById('topbar-location');
+    const topbarLocBadge = document.getElementById('topbar-location-badge');
+    if (topbarLoc && topbarLocBadge) {
+      const locVal = (user.location || '').trim();
+      if (locVal) {
+        topbarLoc.textContent = locVal;
+        topbarLocBadge.style.display = 'inline-flex';
+      } else {
+        topbarLoc.textContent = '';
+        topbarLocBadge.style.display = 'none';
+      }
+    }
+
+    // Update avatar photos (both topbar and profile page)
+    renderProfilePhoto(user);
 
     return user;
 
   } catch (err) {
     console.error('Failed to load profile:', err);
     return null;
+  }
+}
+
+// ==========================================
+// PROFILE PHOTO & AVATAR HELPERS
+// ==========================================
+function getPhotoStorageKey(farmerId) {
+  return `krishisanchar_photo_${farmerId || 'me'}`;
+}
+
+function renderProfilePhoto(user, overridePhotoUrl) {
+  const farmerId = user && user.farmer_id ? user.farmer_id : (currentProfile && currentProfile.farmer_id ? currentProfile.farmer_id : 'me');
+  const storedPhoto = localStorage.getItem(getPhotoStorageKey(farmerId));
+  const photo = overridePhotoUrl !== undefined ? overridePhotoUrl : ((user && user.photo_url) || storedPhoto);
+
+  const topbarImg = document.getElementById('topbar-avatar-img');
+  const topbarInitial = document.getElementById('topbar-avatar-initial');
+  const profileImg = document.getElementById('profile-avatar-img');
+  const profileInitial = document.getElementById('profile-avatar-initial');
+  const uploadLabel = document.getElementById('profile-photo-upload-label');
+  const removeBtn = document.getElementById('profile-photo-remove-btn');
+
+  // Compute initials or icon
+  let initialContent = '<i class="fas fa-user"></i>';
+  if (user && user.full_name && user.full_name.trim()) {
+    initialContent = escapeHtml(user.full_name.trim().charAt(0).toUpperCase());
+  }
+
+  if (topbarInitial) topbarInitial.innerHTML = initialContent;
+  if (profileInitial) profileInitial.innerHTML = initialContent;
+
+  if (photo) {
+    if (topbarImg) {
+      topbarImg.src = photo;
+      topbarImg.style.display = 'block';
+    }
+    if (topbarInitial) topbarInitial.style.display = 'none';
+
+    if (profileImg) {
+      profileImg.src = photo;
+      profileImg.style.display = 'block';
+    }
+    if (profileInitial) profileInitial.style.display = 'none';
+
+    if (uploadLabel) uploadLabel.textContent = 'Change photo';
+    if (removeBtn) removeBtn.style.display = 'inline-flex';
+  } else {
+    if (topbarImg) {
+      topbarImg.src = '';
+      topbarImg.style.display = 'none';
+    }
+    if (topbarInitial) topbarInitial.style.display = 'inline-flex';
+
+    if (profileImg) {
+      profileImg.src = '';
+      profileImg.style.display = 'none';
+    }
+    if (profileInitial) profileInitial.style.display = 'inline-flex';
+
+    if (uploadLabel) uploadLabel.textContent = 'Add photo';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
+function initProfilePhoto() {
+  const uploadBtn = document.getElementById('profile-photo-upload-btn');
+  const fileInput = document.getElementById('profile-photo-input');
+  const removeBtn = document.getElementById('profile-photo-remove-btn');
+  const errorEl = document.getElementById('profile-photo-error');
+
+  if (uploadBtn && fileInput) {
+    uploadBtn.addEventListener('click', () => {
+      if (errorEl) errorEl.style.display = 'none';
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        if (errorEl) {
+          errorEl.textContent = 'Only JPG, PNG, and WebP images are supported.';
+          errorEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        if (errorEl) {
+          errorEl.textContent = 'Photo size must be less than 2 MB.';
+          errorEl.style.display = 'block';
+        }
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        const farmerId = currentProfile && currentProfile.farmer_id ? currentProfile.farmer_id : 'me';
+        localStorage.setItem(getPhotoStorageKey(farmerId), dataUrl);
+        renderProfilePhoto(currentProfile, dataUrl);
+        showToast('Profile photo updated successfully!');
+      };
+      reader.readAsDataURL(file);
+      fileInput.value = '';
+    });
+  }
+
+  if (removeBtn) {
+    removeBtn.addEventListener('click', () => {
+      const farmerId = currentProfile && currentProfile.farmer_id ? currentProfile.farmer_id : 'me';
+      localStorage.removeItem(getPhotoStorageKey(farmerId));
+      renderProfilePhoto(currentProfile, null);
+      showToast('Profile photo removed.');
+    });
   }
 }
 
@@ -855,6 +1035,16 @@ function initDiseaseDetection() {
       if (!res.ok) {
         const detail = data && data.detail;
         const msg = (detail && (detail.error || detail.message || detail)) || 'Diagnosis failed.';
+
+        // Not a leaf: the result panel may still show the PREVIOUS image's
+        // diagnosis (and "Save to History" would save it), so clear it — the
+        // same reset the Remove button does.
+        if (detail && detail.reason === 'not_a_leaf') {
+          lastDiagnosis = null;
+          emptyState.style.display = 'block';
+          resultsContainer.style.display = 'none';
+        }
+
         throw new Error(msg);
       }
 

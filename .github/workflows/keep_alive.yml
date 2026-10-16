@@ -1,0 +1,34 @@
+name: Keep Render Services Awake
+
+on:
+  schedule:
+    # Runs every 12 minutes to prevent Render free-tier services from sleeping (timeout is 15 min)
+    - cron: '*/12 * * * *'
+  workflow_dispatch:   # allow manual trigger from GitHub Actions tab
+
+jobs:
+  ping-services:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping all 8 KrishiSanchar backend services
+        run: |
+          services=(
+            "https://krishisanchar-crop-c3wq.onrender.com/"
+            "https://krishisanchar-fertilizer-c3wq.onrender.com/"
+            "https://krishisanchar-yield-c3wq.onrender.com/"
+            "https://krishisanchar-market-c3wq.onrender.com/"
+            "https://krishisanchar-weather-c3wq.onrender.com/"
+            "https://krishisanchar-assistant-c3wq.onrender.com/"
+            "https://krishisanchar-disease-c3wq.onrender.com/"
+            "https://krishisanchar-auth-c3wq.onrender.com/"
+          )
+
+          echo "Pinging all 8 backend services to keep them warm..."
+          for url in "${services[@]}"; do
+            echo -n "Pinging $url ... "
+            # send GET request with 30s timeout, ignore non-200 failure so one service doesn't block the rest
+            status=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "$url" || echo "TIMEOUT")
+            echo "Status: $status"
+          done
+          echo "All services pinged successfully!"
