@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import os
@@ -249,6 +250,63 @@ before or after the JSON object.
     return advice
 
 
+def _is_leaf_image(file_bytes: bytes, content_type: str = "image/jpeg") -> tuple[bool, str]:
+    """Verify whether the uploaded image is genuinely a plant leaf or agricultural crop foliage
+    before running through the 38-class PlantVillage CNN.
+
+    Returns (is_leaf: bool, explanation: str).
+    """
+    if not GEMINI_API_KEY:
+        return True, ""
+
+    try:
+        b64_data = base64.b64encode(file_bytes).decode("utf-8")
+        mime = content_type if content_type and content_type.startswith("image/") else "image/jpeg"
+
+        prompt = (
+            "You are an agricultural plant pathologist and image validator. "
+            "Examine this image carefully: Is this an actual photograph of a plant leaf, crop leaf, or agricultural plant foliage intended for crop disease diagnosis? "
+            "If the image is an anime/cartoon drawing, night sky, starry space, wallpaper, landscape/scenery, human being, animal, vehicle, building, food dish, indoor object, or anything that is NOT a real plant leaf or agricultural crop, answer 'NO'. "
+            "If it IS a real photograph of a plant leaf, agricultural crop, or plant foliage, answer 'YES'. "
+            "Respond with ONLY 'YES' or 'NO'."
+        )
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}"
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": mime,
+                                "data": b64_data,
+                            }
+                        },
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.0,
+                "maxOutputTokens": 10,
+            },
+        }
+
+        resp = requests.post(url, json=payload, timeout=8)
+        if resp.status_code == 200:
+            data = resp.json()
+            candidates = data.get("candidates", [])
+            if candidates:
+                text_part = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                decision = text_part.strip().upper()
+                if "NO" in decision and "YES" not in decision:
+                    return False, "The uploaded image does not appear to be a plant leaf or crop."
+        return True, ""
+    except Exception as e:
+        print(f"Leaf validation warning (skipped check due to error): {e}")
+        return True, ""
+
+
 # -----------------------------
 # Routes
 # -----------------------------
@@ -273,6 +331,17 @@ async def predict_disease(file: UploadFile = File(...)):
         raise HTTPException(
             status_code=400,
             detail={"error": "Image is larger than the 5MB limit."},
+        )
+
+    # Validate that the image contains a real plant leaf or crop
+    is_leaf, _ = _is_leaf_image(file_bytes, file.content_type)
+    if not is_leaf:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "The uploaded image does not appear to be a plant leaf or crop. Please upload a clear photo of a crop leaf.",
+                "reason": "not_a_leaf",
+            },
         )
 
     img_array = _load_and_preprocess_image(file_bytes)

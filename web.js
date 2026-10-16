@@ -949,6 +949,9 @@ function initDiseaseDetection() {
     }
 
     selectedFile = file;
+    lastDiagnosis = null;
+    emptyState.style.display = 'block';
+    resultsContainer.style.display = 'none';
 
     const reader = new FileReader();
     reader.onload = (e) => {
