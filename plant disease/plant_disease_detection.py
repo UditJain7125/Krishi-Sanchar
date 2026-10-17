@@ -118,6 +118,51 @@ except Exception as e:
     )
 
 
+# -----------------------------
+# Crop index mapping for hybrid verification
+# -----------------------------
+
+CROP_ALIAS_MAP = {
+    "apple": "apple",
+    "blueberry": "blueberry",
+    "cherry": "cherry",
+    "corn": "corn",
+    "maize": "corn",
+    "grape": "grape",
+    "orange": "orange",
+    "citrus": "orange",
+    "peach": "peach",
+    "pepper": "pepper",
+    "bell pepper": "pepper",
+    "capsicum": "pepper",
+    "potato": "potato",
+    "raspberry": "raspberry",
+    "soybean": "soybean",
+    "squash": "squash",
+    "strawberry": "strawberry",
+    "tomato": "tomato",
+}
+
+
+def _normalize_crop(name: str) -> str:
+    if not name:
+        return ""
+    name_clean = re.sub(r"[^a-z]", " ", name.lower()).strip()
+    for alias, standard in CROP_ALIAS_MAP.items():
+        if alias in name_clean:
+            return standard
+    return ""
+
+
+# Pre-group all 38 classes by crop so we can constrain search space dynamically
+CROP_TO_INDICES: dict[str, list[int]] = {}
+for idx, label in class_indices.items():
+    crop_raw = label.split("___")[0]
+    norm_key = _normalize_crop(crop_raw)
+    if norm_key:
+        CROP_TO_INDICES.setdefault(norm_key, []).append(idx)
+
+
 llm = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
     temperature=0.2,
@@ -250,26 +295,30 @@ before or after the JSON object.
     return advice
 
 
-def _is_leaf_image(file_bytes: bytes, content_type: str = "image/jpeg") -> tuple[bool, str]:
-    """Verify whether the uploaded image is genuinely a plant leaf or agricultural crop foliage
-    before running through the 38-class PlantVillage CNN.
+def _validate_and_identify_crop_with_gemini(file_bytes: bytes, content_type: str = "image/jpeg") -> dict:
+    """Verifies that the image is a plant leaf, and identifies the plant/crop species
+    to cross-verify with the CNN model.
 
-    Returns (is_leaf: bool, explanation: str).
+    Returns {"is_leaf": bool, "crop": str}.
     """
     if not GEMINI_API_KEY:
-        return True, ""
+        return {"is_leaf": True, "crop": ""}
 
     try:
         b64_data = base64.b64encode(file_bytes).decode("utf-8")
         mime = content_type if content_type and content_type.startswith("image/") else "image/jpeg"
 
-        prompt = (
-            "You are an agricultural plant pathologist and image validator. "
-            "Examine this image carefully: Is this an actual photograph of a plant leaf, crop leaf, or agricultural plant foliage intended for crop disease diagnosis? "
-            "If the image is an anime/cartoon drawing, night sky, starry space, wallpaper, landscape/scenery, human being, animal, vehicle, building, food dish, indoor object, or anything that is NOT a real plant leaf or agricultural crop, answer 'NO'. "
-            "If it IS a real photograph of a plant leaf, agricultural crop, or plant foliage, answer 'YES'. "
-            "Respond with ONLY 'YES' or 'NO'."
-        )
+        prompt = """You are an agricultural plant pathologist and image validator.
+Examine this image carefully:
+1. Is this a genuine photograph of a plant leaf or agricultural crop? (If it is anime/cartoon, starry sky, wallpaper, scenery, person, animal, vehicle, indoor object, or anything other than a plant leaf/crop, set is_leaf to false).
+2. What plant/crop species is this leaf from? Identify the plant if possible (Choose from: Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper bell, Potato, Raspberry, Soybean, Squash, Strawberry, Tomato, or Other).
+
+Respond with ONLY valid JSON:
+{
+  "is_leaf": true,
+  "crop": "<crop name or 'Unknown'>"
+}
+"""
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}"
         payload = {
@@ -288,7 +337,7 @@ def _is_leaf_image(file_bytes: bytes, content_type: str = "image/jpeg") -> tuple
             ],
             "generationConfig": {
                 "temperature": 0.0,
-                "maxOutputTokens": 10,
+                "maxOutputTokens": 60,
             },
         }
 
@@ -298,13 +347,16 @@ def _is_leaf_image(file_bytes: bytes, content_type: str = "image/jpeg") -> tuple
             candidates = data.get("candidates", [])
             if candidates:
                 text_part = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                decision = text_part.strip().upper()
-                if "NO" in decision and "YES" not in decision:
-                    return False, "The uploaded image does not appear to be a plant leaf or crop."
-        return True, ""
+                text_clean = re.sub(r"```json|```", "", text_part).strip()
+                parsed = json.loads(text_clean)
+                return {
+                    "is_leaf": bool(parsed.get("is_leaf", True)),
+                    "crop": str(parsed.get("crop", "")).strip(),
+                }
+        return {"is_leaf": True, "crop": ""}
     except Exception as e:
-        print(f"Leaf validation warning (skipped check due to error): {e}")
-        return True, ""
+        print(f"Gemini leaf/crop analysis warning: {e}")
+        return {"is_leaf": True, "crop": ""}
 
 
 # -----------------------------
@@ -333,9 +385,9 @@ async def predict_disease(file: UploadFile = File(...)):
             detail={"error": "Image is larger than the 5MB limit."},
         )
 
-    # Validate that the image contains a real plant leaf or crop
-    is_leaf, _ = _is_leaf_image(file_bytes, file.content_type)
-    if not is_leaf:
+    # 1. Dual validation & crop identification with Gemini Vision
+    vision_check = _validate_and_identify_crop_with_gemini(file_bytes, file.content_type)
+    if not vision_check.get("is_leaf", True):
         raise HTTPException(
             status_code=400,
             detail={
@@ -353,15 +405,37 @@ async def predict_disease(file: UploadFile = File(...)):
         # this synchronous block without yielding mid-inference.
         interpreter.set_tensor(_input_details[0]["index"], img_array)
         interpreter.invoke()
-        predictions = interpreter.get_tensor(_output_details[0]["index"])
+        predictions = interpreter.get_tensor(_output_details[0]["index"])[0]
     except Exception as e:
         raise HTTPException(
             status_code=502,
             detail={"error": "Model inference failed", "details": str(e)},
         )
 
-    predicted_index = int(np.argmax(predictions, axis=1)[0])
-    confidence = float(np.max(predictions)) * 100
+    # Base prediction from CNN global argmax
+    predicted_index = int(np.argmax(predictions))
+    confidence = float(predictions[predicted_index]) * 100
+
+    # 2. Hybrid Crop Cross-Verification:
+    # If Gemini Vision identified a known PlantVillage crop, verify against CNN
+    detected_crop = vision_check.get("crop", "")
+    crop_norm = _normalize_crop(detected_crop)
+
+    if crop_norm and crop_norm in CROP_TO_INDICES:
+        candidate_indices = CROP_TO_INDICES[crop_norm]
+        cnn_raw_label = class_indices.get(predicted_index, "")
+        cnn_crop_norm = _normalize_crop(cnn_raw_label.split("___")[0])
+
+        # If CNN's crop differs from visually verified crop (e.g. Cherry vs Potato):
+        if cnn_crop_norm != crop_norm:
+            best_idx = max(candidate_indices, key=lambda idx: predictions[idx])
+            predicted_index = best_idx
+            candidate_probs = [predictions[idx] for idx in candidate_indices]
+            sum_probs = sum(candidate_probs)
+            if sum_probs > 0:
+                confidence = float(predictions[best_idx] / sum_probs) * 100
+            else:
+                confidence = float(predictions[best_idx]) * 100
 
     raw_label = class_indices.get(predicted_index)
     if raw_label is None:
