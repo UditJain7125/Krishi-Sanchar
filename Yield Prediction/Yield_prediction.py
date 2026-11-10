@@ -121,6 +121,11 @@ def predict_yield(data: YieldPredictionRequest):
     )
 
 
+@app.get("/")
+def root():
+    return {"message": "KrishiSanchar Yield Prediction API Running"}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
