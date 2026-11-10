@@ -1,4 +1,4 @@
-// Each service now deploys as its own Render Web Service (see render.yaml),
+﻿// Each service now deploys as its own Render Web Service (see render.yaml),
 // so there's no shared API_BASE or /api/* prefix anymore — every feature
 // talks directly to its own service's root.
 //
@@ -74,7 +74,7 @@ const FETCH_RETRY_DELAY_MS = 5000;
 async function fetchWithRetry(url, options = {}, retries = FETCH_MAX_RETRIES) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const res = await fetchWithRetry(url, options);
+      const res = await fetch(url, options);
       // 4xx = client/auth error — retrying won't help
       if (res.status >= 400 && res.status < 500) return res;
       // 5xx = server crash/restart — worth retrying
