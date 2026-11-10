@@ -56,6 +56,48 @@ function weatherIconFor(description) {
   return DEFAULT_WEATHER_ICON;
 }
 
+
+// ==========================================================================
+// FETCH WITH RETRY
+// Wraps native fetch() with auto-retries for transient failures.
+// Render free-tier services restart ~daily and return ERR_CONNECTION_RESET
+// for ~1-2 min during boot. This silently hides that restart window.
+// Rules:
+//   - Retries up to FETCH_MAX_RETRIES (3) times
+//   - Waits FETCH_RETRY_DELAY_MS (5000ms) between attempts
+//   - Retries on: network errors (TypeError), 5xx server errors
+//   - Does NOT retry on: 4xx errors (bad request, unauthorized, not found)
+// ==========================================================================
+const FETCH_MAX_RETRIES = 3;
+const FETCH_RETRY_DELAY_MS = 5000;
+
+async function fetchWithRetry(url, options = {}, retries = FETCH_MAX_RETRIES) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetchWithRetry(url, options);
+      // 4xx = client/auth error — retrying won't help
+      if (res.status >= 400 && res.status < 500) return res;
+      // 5xx = server crash/restart — worth retrying
+      if (!res.ok && attempt < retries) {
+        console.warn(`[Retry ${attempt}/${retries}] ${url} returned ${res.status}, retrying in ${FETCH_RETRY_DELAY_MS / 1000}s...`);
+        await new Promise(r => setTimeout(r, FETCH_RETRY_DELAY_MS));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      // Network error: ERR_CONNECTION_RESET, fetch failed, DNS error, etc.
+      if (attempt < retries) {
+        console.warn(`[Retry ${attempt}/${retries}] ${url} network error: ${err.message}. Retrying in ${FETCH_RETRY_DELAY_MS / 1000}s...`);
+        await new Promise(r => setTimeout(r, FETCH_RETRY_DELAY_MS));
+      } else {
+        // All retries exhausted — rethrow so callers can display error
+        console.error(`[Retry] All ${retries} attempts failed for ${url}: ${err.message}`);
+        throw err;
+      }
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initSidebar();
@@ -220,7 +262,7 @@ async function handleLoginSubmit(event) {
   submitBtn.textContent = 'Logging in...';
 
   try {
-    const res = await fetch(`${API.auth}/login`, {
+    const res = await fetchWithRetry(`${API.auth}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifier, password }),
@@ -278,7 +320,7 @@ async function handleSignupSubmit(event) {
   submitBtn.textContent = 'Creating account...';
 
   try {
-    const res = await fetch(`${API.auth}/signup`, {
+    const res = await fetchWithRetry(`${API.auth}/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -312,7 +354,7 @@ async function loadProfileData() {
   if (!token) return;
 
   try {
-    const res = await fetch(`${API.auth}/me`, {
+    const res = await fetchWithRetry(`${API.auth}/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -625,7 +667,7 @@ async function addHistoryLog(date, type, params, result) {
   if (!token) return; // not logged in — nothing to persist
 
   try {
-    const res = await fetch(`${API.auth}/history`, {
+    const res = await fetchWithRetry(`${API.auth}/history`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -717,7 +759,7 @@ async function loadHistoryTable() {
   if (!token) return [];
 
   try {
-    const res = await fetch(`${API.auth}/history?limit=100`, {
+    const res = await fetchWithRetry(`${API.auth}/history?limit=100`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return [];
@@ -851,7 +893,7 @@ async function loadDashboardWeather() {
   }
 
   try {
-    const res = await fetch(`${API.weather}/weather/${encodeURIComponent(location)}`);
+    const res = await fetchWithRetry(`${API.weather}/weather/${encodeURIComponent(location)}`);
     if (!res.ok) {
       if (descEl) descEl.textContent = 'Could not load weather';
       return;
@@ -1028,7 +1070,7 @@ function initDiseaseDetection() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const res = await fetch(`${API.disease}/predict-disease`, {
+      const res = await fetchWithRetry(`${API.disease}/predict-disease`, {
         method: 'POST',
         body: formData,
       });
@@ -1120,7 +1162,7 @@ function initCropRecommendation() {
     submitBtn.innerHTML = 'Computing Suitability... <i class="fas fa-spinner fa-spin"></i>';
 
     try {
-      const res = await fetch(`${API.crop}/crop_recommendation`, {
+      const res = await fetchWithRetry(`${API.crop}/crop_recommendation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1226,7 +1268,7 @@ function initFertilizerRecommendation() {
     submitBtn.innerHTML = 'Calculating Nutrients... <i class="fas fa-spinner fa-spin"></i>';
 
     try {
-      const res = await fetch(`${API.fertilizer}/Fertilizer_recommendation`, {
+      const res = await fetchWithRetry(`${API.fertilizer}/Fertilizer_recommendation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1327,7 +1369,7 @@ async function sendMessage() {
   sendBtn.disabled = true;
 
   try {
-    const res = await fetch(`${API.assistant}/ask`, {
+    const res = await fetchWithRetry(`${API.assistant}/ask`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question: text })
@@ -1484,7 +1526,7 @@ function initYieldPrediction() {
     submitBtn.innerHTML = 'Predicting Yield... <i class="fas fa-spinner fa-spin"></i>';
 
     try {
-      const res = await fetch(`${API.yieldPrediction}/predict`, {
+      const res = await fetchWithRetry(`${API.yieldPrediction}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1549,7 +1591,7 @@ function initYieldPrediction() {
 // values sent to /predict always match what the encoders were trained on.
 async function loadYieldOptions(cropSelect, soilSelect) {
   try {
-    const res = await fetch(`${API.yieldPrediction}/options`);
+    const res = await fetchWithRetry(`${API.yieldPrediction}/options`);
     if (!res.ok) return; // keep the static fallback options already in the HTML
 
     const data = await res.json();
@@ -1613,7 +1655,7 @@ function initMarketAnalysis() {
     submitBtn.innerHTML = 'Checking Mandi Prices... <i class="fas fa-spinner fa-spin"></i>';
 
     try {
-      const res = await fetch(`${API.market}/market-analysis/${encodeURIComponent(crop)}`);
+      const res = await fetchWithRetry(`${API.market}/market-analysis/${encodeURIComponent(crop)}`);
 
       if (!res.ok) {
         // market_analysis.py returns 404 with a helpful message when no
@@ -1704,7 +1746,7 @@ function initWeatherForecast() {
     loadingState.style.display = 'block';
 
     try {
-      const res = await fetch(`${API.weather}/weather/${encodeURIComponent(city)}`);
+      const res = await fetchWithRetry(`${API.weather}/weather/${encodeURIComponent(city)}`);
       const data = await res.json();
 
       if (!res.ok || data.error) {
