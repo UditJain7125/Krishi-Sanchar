@@ -36,8 +36,15 @@ with open(BASE_DIR / "label_encoder.pkl", "rb") as f:
 with open(BASE_DIR / "feature_columns.pkl", "rb") as f:
     feature_columns = pickle.load(f)
 
-llm = ChatGoogleGenerativeAI(
+llm_primary = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
+    temperature=0.2,
+    max_output_tokens=500,
+    google_api_key=os.getenv("GEMINI_API_KEY"),
+)
+
+llm_fallback = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash-lite",
     temperature=0.2,
     max_output_tokens=500,
     google_api_key=os.getenv("GEMINI_API_KEY"),
@@ -62,7 +69,8 @@ Respond ONLY with a valid JSON object, no markdown, no code fences, no extra tex
 Keep each value simple, conversational, and free of bullet points, numbering, or markdown symbols like asterisks.
 """)
 
-chain = prompt | llm
+chain_primary = prompt | llm_primary
+chain_fallback = prompt | llm_fallback
 
 
 def _content_to_text(content) -> str:
@@ -122,22 +130,32 @@ def fertilizer_recommendation(data: ModelInput):
     pred = fertilizer_model.predict(encoded)[0]
     fertilizer_name = label_encoder.inverse_transform([pred])[0]
 
-    try:
-        response = chain.invoke({
-            "crop_type": data.Crop_type,
-            "soil_type": data.Soil_type,
-            "fertilizer_name": fertilizer_name,
-        })
+    explanation = None
+    for active_chain in (chain_primary, chain_fallback):
+        try:
+            response = active_chain.invoke({
+                "crop_type": data.Crop_type,
+                "soil_type": data.Soil_type,
+                "fertilizer_name": fertilizer_name,
+            })
 
-        raw_text = _content_to_text(response.content).strip()
-        raw_text = raw_text.replace("```json", "").replace("```", "").strip()
-        raw_text = re.sub(r",(\s*[}\]])", r"\1", raw_text)
-        explanation = json.loads(raw_text)
-    except Exception as e:
-        # If Gemini is unavailable (rate limit, quota, network, bad JSON),
-        # still return the recommended fertilizer — the AI explanation is
-        # a bonus, not the reason this endpoint exists.
-        explanation = {"raw_response": f"AI explanation unavailable right now: {e}"}
+            raw_text = _content_to_text(response.content).strip()
+            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+            raw_text = re.sub(r",(\s*[}\]])", r"\1", raw_text)
+            parsed = json.loads(raw_text)
+            if isinstance(parsed, dict) and parsed.get("reason"):
+                explanation = parsed
+                break
+        except Exception:
+            continue
+
+    if not explanation:
+        explanation = {
+            "reason": f"{fertilizer_name} provides the targeted nutrient balance required for {data.Crop_type} in {data.Soil_type} soil conditions.",
+            "application_method": "Distribute uniformly around the crop root zone followed by normal irrigation.",
+            "precautions": "Avoid direct contact with plant stems and do not apply during extreme midday heat.",
+            "best_time": "Apply during early morning or evening hours in active growth phases."
+        }
 
     return {
         "recommended_fertilizer": fertilizer_name,

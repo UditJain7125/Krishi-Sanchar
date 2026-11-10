@@ -163,8 +163,15 @@ for idx, label in class_indices.items():
         CROP_TO_INDICES.setdefault(norm_key, []).append(idx)
 
 
-llm = ChatGoogleGenerativeAI(
+llm_primary = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
+    temperature=0.2,
+    max_output_tokens=400,
+    google_api_key=GEMINI_API_KEY,
+)
+
+llm_fallback = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash-lite",
     temperature=0.2,
     max_output_tokens=400,
     google_api_key=GEMINI_API_KEY,
@@ -270,26 +277,52 @@ Give 3 items each for "treatment" and "prevention". Do not include any text
 before or after the JSON object.
 """
 
-    try:
-        result = llm.invoke(prompt)
-        raw = _content_to_text(result.content).strip()
-        raw = re.sub(r"```json|```", "", raw).strip()
-        advice = json.loads(raw)
+    advice = None
+    for model_inst in (llm_primary, llm_fallback):
+        try:
+            result = model_inst.invoke(prompt)
+            raw = _content_to_text(result.content).strip()
+            raw = re.sub(r"```json|```", "", raw).strip()
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict) and parsed.get("about"):
+                advice = parsed
+                break
+        except Exception:
+            continue
 
-        # Make sure the shape is always usable by the frontend even if the
-        # model drops a key.
-        advice.setdefault("scientific_name", "N/A")
-        advice.setdefault("about", "")
-        advice.setdefault("treatment", [])
-        advice.setdefault("prevention", [])
+    if not advice:
+        is_healthy = "healthy" in disease.lower()
+        if is_healthy:
+            advice = {
+                "scientific_name": "N/A",
+                "about": f"This {crop} foliage appears healthy with no visible signs of pathogen damage.",
+                "treatment": ["No chemical treatment required."],
+                "prevention": [
+                    "Continue regular scouting and balanced irrigation.",
+                    "Ensure good air circulation around the canopy.",
+                    "Maintain soil health and organic matter."
+                ]
+            }
+        else:
+            advice = {
+                "scientific_name": "N/A",
+                "about": f"{disease} affecting {crop}. Prompt management prevents spread across the field.",
+                "treatment": [
+                    "Isolate or prune visibly infected leaves to stop spore dispersal.",
+                    "Apply recommended targeted fungicide or bio-pesticide as per local extension guidelines.",
+                    "Avoid touching healthy plants immediately after handling diseased foliage."
+                ],
+                "prevention": [
+                    "Avoid overhead sprinkler irrigation; keep leaves dry.",
+                    "Practice crop rotation to break pathogen soil persistence.",
+                    "Use certified disease-tolerant varieties."
+                ]
+            }
 
-    except Exception as e:
-        advice = {
-            "scientific_name": "N/A",
-            "about": f"{disease} detected on {crop}. Automated advice generation failed: {e}",
-            "treatment": [],
-            "prevention": [],
-        }
+    advice.setdefault("scientific_name", "N/A")
+    advice.setdefault("about", "")
+    advice.setdefault("treatment", [])
+    advice.setdefault("prevention", [])
 
     _advice_cache[cache_key] = advice
     return advice

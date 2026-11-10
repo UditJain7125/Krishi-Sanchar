@@ -17,8 +17,14 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY is missing from .env")
 
 
-llm = ChatGoogleGenerativeAI(
+llm_primary = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
+    temperature=0.4,
+    google_api_key=api_key
+)
+
+llm_fallback = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash-lite",
     temperature=0.4,
     google_api_key=api_key
 )
@@ -47,7 +53,8 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 
 
-farming_chain = prompt | llm
+chain_primary = prompt | llm_primary
+chain_fallback = prompt | llm_fallback
 
 
 def _content_to_text(content) -> str:
@@ -68,10 +75,20 @@ def _content_to_text(content) -> str:
 
 
 def ask_farming_assistant(question: str):
-    response = farming_chain.invoke(
-        {"question": question}
+    for active_chain in (chain_primary, chain_fallback):
+        try:
+            response = active_chain.invoke({"question": question})
+            text = _content_to_text(response.content).strip()
+            if text:
+                return text
+        except Exception:
+            continue
+
+    return (
+        "I am currently receiving high traffic from our agricultural network. "
+        "For general farming inquiries, please ensure proper soil testing, timely irrigation, "
+        "and balanced fertilizer application as per your regional Krishi Vigyan Kendra (KVK) guidelines."
     )
-    return _content_to_text(response.content)
 
 
 # -----------------------------

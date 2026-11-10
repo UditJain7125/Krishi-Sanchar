@@ -33,8 +33,14 @@ gemini_api_key = os.getenv("GEMINI_API_KEY")
 BASE_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
 # ── Gemini LLM ────────────────────────────────────────────────────────────────
-llm = ChatGoogleGenerativeAI(
+llm_primary = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
+    google_api_key=gemini_api_key,
+    temperature=0,
+    max_output_tokens=400,
+)
+llm_fallback = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash-lite",
     google_api_key=gemini_api_key,
     temperature=0,
     max_output_tokens=400,
@@ -139,40 +145,31 @@ Respond with ONLY valid JSON, no markdown, no code fences:
 }}
 """
 
-    try:
-        result = llm.invoke(prompt)
-        ai_text = _content_to_text(result.content)
-        ai_text = re.sub(r"```json|```", "", ai_text).strip()
-
+    ai_advice = None
+    for model_inst in (llm_primary, llm_fallback):
         try:
-            ai_advice = json.loads(ai_text)
+            result = model_inst.invoke(prompt)
+            ai_text = _content_to_text(result.content)
+            ai_text = re.sub(r"```json|```", "", ai_text).strip()
+            parsed = json.loads(ai_text)
+            if isinstance(parsed, dict) and parsed.get("irrigation"):
+                ai_advice = parsed
+                break
         except Exception:
-            ai_advice = {
-                "irrigation": ai_text,
-                "fertilizer": "",
-                "pesticide": "",
-                "crop_care": "",
-            }
+            continue
 
-        payload = {
-            "city": clean_city,
-            "forecast": forecasts,
-            "ai_advice": ai_advice,
+    if not ai_advice:
+        ai_advice = {
+            "irrigation": "Keep monitoring soil moisture levels closely.",
+            "fertilizer": "Avoid application during heavy winds or high rainfall.",
+            "pesticide": "Do not spray if rain is anticipated within 6 hours.",
+            "crop_care": "Maintain regular field drainage and scouting for pests.",
         }
 
-        _cache_set(cache_key, payload)
-        return {**payload, "cached": False}
-
-    except Exception as e:
-        return {
-            "city": clean_city,
-            "forecast": forecasts,
-            "ai_advice": {
-                "irrigation": "Keep monitoring soil moisture.",
-                "fertilizer": "Avoid application during heavy winds or rains.",
-                "pesticide": "Do not spray if rain is anticipated within 6 hours.",
-                "crop_care": "Maintain regular field drainage.",
-            },
-            "error": str(e),
-            "cached": False,
-        }
+    payload = {
+        "city": clean_city,
+        "forecast": forecasts,
+        "ai_advice": ai_advice,
+    }
+    _cache_set(cache_key, payload)
+    return {**payload, "cached": False}

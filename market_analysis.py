@@ -72,12 +72,63 @@ engine = create_engine(
 
 # ── Gemini LLM ────────────────────────────────────────────────────────────────
 
-llm = ChatGoogleGenerativeAI(
+llm_primary = ChatGoogleGenerativeAI(
     model="gemini-3.1-flash-lite",
     temperature=0.2,
     max_output_tokens=400,
     google_api_key=GEMINI_API_KEY
 )
+
+llm_fallback = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash-lite",
+    temperature=0.2,
+    max_output_tokens=400,
+    google_api_key=GEMINI_API_KEY
+)
+
+
+def _compute_market_stats(records: list[dict], crop_name: str) -> dict:
+    """Compute market price stats directly from database records as a bulletproof fallback."""
+    valid_entries = []
+    for r in records:
+        price_val = None
+        for key in ("modal_price", "max_price", "min_price"):
+            val_str = str(r.get(key) or "").replace("₹", "").replace(",", "").strip()
+            try:
+                price_val = float(val_str)
+                if price_val > 0:
+                    break
+            except ValueError:
+                continue
+        if price_val and price_val > 0:
+            m_name = f"{r.get('market', 'Local')}, {r.get('state', '')}".strip(" ,")
+            valid_entries.append((price_val, m_name))
+
+    if not valid_entries:
+        return {
+            "price_range": "Market data available below",
+            "best_market": "See table below",
+            "worst_market": "See table below",
+            "advice": f"Review the mandi-wise prices below to identify the highest paying markets for {crop_name.title()}."
+        }
+
+    valid_entries.sort(key=lambda x: x[0])
+    lowest = valid_entries[0]
+    highest = valid_entries[-1]
+
+    price_range = f"₹{int(lowest[0])} - ₹{int(highest[0])} per quintal"
+    best_market = f"{highest[1]} - ₹{int(highest[0])}"
+    worst_market = f"{lowest[1]} - ₹{int(lowest[0])}"
+    advice = (
+        f"Mandi prices for {crop_name.title()} currently range between {price_range}. "
+        f"Highest realization reported at {highest[1]}."
+    )
+    return {
+        "price_range": price_range,
+        "best_market": best_market,
+        "worst_market": worst_market,
+        "advice": advice
+    }
 
 
 def _content_to_text(content) -> str:
@@ -226,35 +277,33 @@ preamble, no explanation outside the JSON. Use exactly these keys:
 Do not include any text before or after the JSON object.
 """
 
-    try:
-        result = llm.invoke(prompt)
-        raw = _content_to_text(result.content).strip()
+    ai_analysis = None
+    for model_instance in (llm_primary, llm_fallback):
+        try:
+            result = model_instance.invoke(prompt)
+            raw = _content_to_text(result.content).strip()
 
-        # Strip markdown fences if present
-        if raw.startswith("```"):
-            raw = raw.strip("`")
-            if raw.lower().startswith("json"):
-                raw = raw[4:].strip()
+            if raw.startswith("```"):
+                raw = raw.strip("`")
+                if raw.lower().startswith("json"):
+                    raw = raw[4:].strip()
 
-        # Remove trailing commas before } or ]
-        raw = re.sub(r",(\s*[}\]])", r"\1", raw)
+            raw = re.sub(r",(\s*[}\]])", r"\1", raw)
+            parsed = json.loads(raw)
+            if parsed.get("price_range") and parsed.get("best_market"):
+                ai_analysis = parsed
+                break
+        except Exception as e:
+            continue
 
-        ai_analysis = json.loads(raw)
-
-    except json.JSONDecodeError:
-        ai_analysis = {
-            "price_range": None,
-            "best_market": None,
-            "worst_market": None,
-            "advice": raw,
-        }
-    except Exception as e:
-        ai_analysis = {
-            "price_range": None,
-            "best_market": None,
-            "worst_market": None,
-            "advice": "Gemini analysis failed: " + str(e),
-        }
+    # Fallback to computing directly from DB records if Gemini is unavailable or incomplete
+    stats = _compute_market_stats(records, crop_name)
+    if not ai_analysis:
+        ai_analysis = stats
+    else:
+        for key in ("price_range", "best_market", "worst_market", "advice"):
+            if not ai_analysis.get(key) or ai_analysis.get(key) in ("None", "N/A"):
+                ai_analysis[key] = stats.get(key)
 
     last_updated = _db_last_updated()
 
