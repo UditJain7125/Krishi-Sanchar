@@ -234,8 +234,36 @@ function logout() {
 // ==========================================
 const AUTH_TOKEN_KEY = 'krishisanchar_token';
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (!payload.exp) return false;
+    // Expired if current time exceeds expiry (with 10-second buffer)
+    return Date.now() >= (payload.exp * 1000 - 10000);
+  } catch (e) {
+    return true;
+  }
+}
+
 function getAuthToken() {
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (!token) return null;
+  if (isTokenExpired(token)) {
+    clearAuthToken();
+    return null;
+  }
+  return token;
 }
 
 function setAuthToken(token) {
